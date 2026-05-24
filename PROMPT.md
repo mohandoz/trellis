@@ -215,7 +215,7 @@ PHASE 8 — VERIFY (mandatory before declaring done)
   5. Every factual claim cites file:line.
   6. settings.json: hook matchers case-correct, exit codes correct, schema
      fields correct per event type.
-  7. Run `bash /u01/claude-init/scripts/audit-setup.sh` (if available).
+  7. Run `conjure audit` (or `bash /u01/conjure/scripts/audit-setup.sh`).
 
 ═══════════════════════════════════════════════════════════════════════════
 OUTPUT (when done)
@@ -224,7 +224,7 @@ OUTPUT (when done)
   • One-paragraph "first scenario" walkthrough showing which files load for
     a typical task in this project.
   • List of recommended MCP servers to install (see reference/MCP-SERVERS.md
-    if /u01/claude-init/ is accessible).
+    if /u01/conjure/ is accessible).
   • List of known gaps / TODOs deferred to next iteration.
 
 No prose recap of what you built. The file tree is the receipt.
@@ -254,5 +254,5 @@ No prose recap of what you built. The file tree is the receipt.
 
 ## After Claude finishes
 
-Run `bash /u01/claude-init/scripts/audit-setup.sh /path/to/repo` for a final
+Run `conjure audit /path/to/repo` (or `bash /u01/conjure/scripts/audit-setup.sh`) for a final
 quality check. Fix any flagged items before committing.

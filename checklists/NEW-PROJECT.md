@@ -7,7 +7,7 @@ Use when starting from an empty directory.
 - [ ] `git init && git commit --allow-empty -m "chore: init"`
 - [ ] Pin runtime version: `.tool-versions` (mise/asdf) or `.nvmrc` / `pyproject.toml` `requires-python`.
 - [ ] `.gitignore` (use https://gitignore.io for stack).
-- [ ] `.editorconfig` (copy from `/u01/claude-init/templates/.editorconfig`).
+- [ ] `.editorconfig` (copy from `/u01/conjure/templates/.editorconfig`).
 - [ ] `.gitattributes` (line endings, binary handling).
 - [ ] `README.md` with one-paragraph intent (Claude reads this).
 - [ ] `LICENSE`.
@@ -18,7 +18,7 @@ Use when starting from an empty directory.
 
 - [ ] Answer Claude's 5-7 discovery questions honestly (stack, DB, test framework, deploy target, team size, conventions to honor, primary language for ad-hoc scripts).
 - [ ] Confirm Claude scaffolds the four layers (CLAUDE.md, skills, agents, hooks).
-- [ ] Run audit: `bash /u01/claude-init/scripts/audit-setup.sh .`
+- [ ] Run audit: `conjure audit .` (or `bash /u01/conjure/scripts/audit-setup.sh .`)
 
 ## First-day-of-coding additions
 

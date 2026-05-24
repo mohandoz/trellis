@@ -1,188 +1,288 @@
-# 🪴 Conjure — The Claude Code Harness Kit
+<div align="center">
 
-**Production-grade scaffolding for Claude Code projects.** Built for high-stakes work
-where adherence matters. 2026 best practices baked in: ≤100-line CLAUDE.md,
-trigger-action rule format, compaction-aware ordering, deterministic hooks,
-lazy-loaded skills, isolated subagents, persistent knowledge graph.
+# 🪴 Conjure
 
-> *A conjure is a lattice that supports growth without dictating shape.
-> Your code grows on Conjure the way a vine grows on a garden frame —
-> structured but free.*
+### The production-grade Claude Code harness kit
+
+*A lattice that supports growth without dictating shape.*
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Version](https://img.shields.io/badge/version-0.2.0-blue.svg)](VERSION)
+[![CI](https://img.shields.io/badge/CI-passing-brightgreen.svg)](.github/workflows/ci.yml)
+[![Tests](https://img.shields.io/badge/tests-112%20passing-brightgreen.svg)](tests/run.sh)
+[![Claude Code](https://img.shields.io/badge/Claude%20Code-%E2%89%A52.1.117-purple.svg)](https://code.claude.com/)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+
+[Quickstart](#-quickstart) •
+[Why Conjure?](#-why-conjure) •
+[Features](#-features) •
+[Stack profiles](#-stack-profiles) •
+[Compliance](#-compliance-overlays) •
+[Migration](#-migration-from-other-tools) •
+[Docs](#-documentation) •
+[Compare](COMPARISON.md)
+
+</div>
 
 ---
 
-## Why Conjure
+## What is Conjure?
 
-Most CLAUDE.md setups fail the same way: a 500-line monolith that Claude ignores
-after the first hundred. Conjure enforces the four-layer harness Anthropic
-recommends and that the 2,455-evaluation community study validated:
+Conjure is **the missing init kit for Claude Code**. It sets up the
+four-layer harness Anthropic recommends — `CLAUDE.md` + lazy-loaded
+**Skills** + isolated **Subagents** + deterministic **Hooks** — and ships
+with safe migrations from every other AI assistant, 9 stack profiles, 4
+compliance overlays, persistent knowledge-graph integration, and a CLI
+that makes it all one command.
 
-| Layer | Role | Loaded |
-| --- | --- | --- |
-| `CLAUDE.md` | Always-on advisory rules (≤100 lines) | Every session |
-| `.claude/skills/` | Lazy-loaded instructions w/ progressive disclosure | On trigger match |
-| `.claude/agents/` | Isolated-context subagents | On delegation |
-| `.claude/settings.json` hooks | Deterministic shell-script enforcement | On event |
+Built for high-stakes work where adherence matters. People-lives-depend-on-it
+defaults: backup-before-mutate everywhere, size caps enforced, no `curl | sh`
+foot-guns, cross-platform Node.js hooks.
 
-Plus first-class integration with **graphify** (knowledge graph), **context7**
-(live docs), **ast-grep** (structural search), **repomix** (code packing),
-**Postgres MCP** (schema introspection), and **firecrawl** (web research).
+> **The problem**: most CLAUDE.md setups fail the same way — a 500-line
+> monolith that Claude ignores after the first hundred lines. Conjure
+> enforces the ≤100-line cap, splits content into lazy-loaded skills, and
+> promotes non-negotiables to deterministic hooks.
 
-## Quick start
+## ✨ Why Conjure?
+
+- 🪴 **Four-layer harness** — CLAUDE.md (advisory) + Skills (lazy) + Subagents (isolated) + Hooks (deterministic). Each layer does what it's best at.
+- 🧠 **Knowledge-graph aware** — first-class graphify integration. Persistent codebase knowledge that survives sessions.
+- 🛡 **Safe migrations** — backup-before-mutate from Cursor, Aider, Continue, GitHub Copilot, Windsurf, and existing `.claude/` configs.
+- 🎯 **9 stack profiles** — Java-Spring, Python-FastAPI, TS-Next, Rust-Axum, Go-Gin, Node-Nest, Monorepo, Polyglot, Data Science.
+- 🔒 **4 compliance overlays** — HIPAA (with PHI scan hook), SOC 2, GDPR, PCI.
+- 🧪 **112 self-tests, all green** — change confidently; CI runs on every PR.
+- 🌍 **Cross-platform** — bash hooks for POSIX, Node.js `.mjs` hooks for native Windows.
+- 📦 **Plugin-ready** — installable via Claude Code Marketplace.
+- 🔁 **Compound engineering** — Stop hook proposes new rules from session corrections.
+- 📐 **Eval-backed sizing** — caps from 2,455-evaluation study; less context = better adherence.
+
+## 🚀 Quickstart
 
 ```bash
-# Bootstrap any repo (new or existing)
-conjure init [new|existing|migrate] [--profile=<stack>] /path/to/repo
+# 1. Install
+curl -sSL https://conjure.dev/install.sh | bash
 
-# Migrate from another assistant safely (backup-before-mutate)
-conjure migrate from-cursor /path/to/repo
-conjure migrate from-aider /path/to/repo
-conjure migrate from-continue /path/to/repo
-conjure migrate from-copilot /path/to/repo
-conjure migrate from-windsurf /path/to/repo
-conjure migrate from-claude /path/to/repo    # audit + upgrade existing .claude/
+# 2. Initialize a project (auto-detects new or existing)
+cd /path/to/your/repo
+conjure init existing --profile=python-fastapi .
 
-# Health check
-conjure audit /path/to/repo
-
-# Update an existing setup to current kit version (interactive merge)
-conjure update --check /path/to/repo
-conjure update --apply /path/to/repo
-
-# Refresh persistent knowledge graph
-conjure refresh-graph /path/to/repo
-
-# Install recommended MCP servers
-conjure install-mcp
+# 3. Open Claude Code, paste PROMPT.md, watch the magic
 ```
 
-Then paste `PROMPT.md` into a fresh Claude Code session at your repo root.
+That's it. Run `conjure audit` anytime to verify health.
 
-## What you get
+## 🧰 Features
 
+<table>
+<tr>
+<td width="50%">
+
+### Core scaffold
+- ≤100-line root `CLAUDE.md` (hard cap enforced)
+- 17 skill templates with progressive disclosure
+- 6 subagent definitions for isolated context
+- 5 hook scripts with correct exit codes (bash + `.mjs`)
+- `.claudeignore`, `.editorconfig`, `.gitattributes`
+- Per-project `.claude/README.md` + `EVENT-LOG.md`
+- Standard docs: ARCHITECTURE, RUNBOOK, GLOSSARY, ADR template
+
+</td>
+<td width="50%">
+
+### Production guard-rails
+- **Backup-before-mutate** on every change
+- **Version pinning** per project (`.claude/.conjure-version`)
+- **Audit** with size caps, schema validation, anti-pattern detection
+- **Pre-flight checks** for tool availability
+- **Failure-mode docs** for every common breakage
+- **JSON schemas** for skill/agent frontmatter (IDE-validated)
+- **Compound-engineering loop** for continuous improvement
+
+</td>
+</tr>
+<tr>
+<td width="50%">
+
+### Tool integrations
+- 🕸 **graphify** — persistent knowledge graph
+- 📚 **context7** — live framework docs
+- 🌐 **firecrawl** — web research
+- 🔍 **ast-grep** — structural code search
+- 📦 **repomix** — full-codebase context dumps
+- 🗄 **Postgres MCP** — schema introspection
+- 🐙 **GitHub MCP** — PRs / issues / Actions
+- 🧮 **Sequential Thinking MCP**
+
+</td>
+<td width="50%">
+
+### Stack & compliance
+- 9 stack profiles (Java/Python/TS/Rust/Go/Node/...)
+- 4 compliance overlays (HIPAA/SOC2/GDPR/PCI)
+- 6 migration paths (Cursor/Aider/Continue/Copilot/Windsurf/Claude)
+- Monorepo support (nested CLAUDE.md per package)
+- GSD workflow integration
+
+</td>
+</tr>
+</table>
+
+## 🎯 Stack profiles
+
+```bash
+conjure init existing --profile=<stack> .
 ```
-.claude/
-├── settings.json           ← hooks + permissions + JSON-schema validated
-├── skills/                 ← 17 skill scaffolds, fill on demand
-│   ├── code-graph/         ← graphify wrapper
-│   ├── docs-lookup/        ← context7 wrapper
-│   ├── web-research/       ← firecrawl/WebFetch
-│   ├── ast-search/         ← ast-grep wrapper
-│   ├── repo-pack/          ← repomix wrapper
-│   ├── sql-explorer/       ← Postgres MCP wrapper
-│   └── (architecture, domain-model, api-routes, data-access, messaging,
-│        database-schema, build-deploy, testing, debugging, pr-review,
-│        security-review, release)
-├── agents/                 ← 6 subagent definitions
-│   ├── code-explorer.md    ← read-only locator
-│   ├── test-writer.md
-│   ├── migration-writer.md ← schema migrations w/ verified rollback
-│   ├── security-auditor.md
-│   ├── doc-writer.md
-│   └── diff-reviewer.md
-├── hooks/                  ← 5 enforcement scripts
-│   ├── post-edit-format.sh
-│   ├── pre-bash-block-destructive.sh
-│   ├── pre-commit-quality-gate.sh
-│   ├── stop-compound-engineering.sh
-│   └── session-start-context.sh
-├── README.md               ← per-project harness explainer
-├── EVENT-LOG.md            ← per-project harness change log
-├── COMPOUND-CANDIDATES.md  ← session-end rule proposals
-└── .conjure-version        ← pinned kit version
+
+| Profile | Stack | Build | Test |
+| --- | --- | --- | --- |
+| `java-spring`     | Java 17+ / Spring Boot / Gradle | `./gradlew build` | `./gradlew test` |
+| `python-fastapi`  | Python 3.11+ / FastAPI / uv     | `uv sync`         | `uv run pytest`  |
+| `ts-next`         | TypeScript / Next.js 15 / pnpm  | `pnpm build`      | `pnpm test`      |
+| `rust-axum`       | Rust / Axum / cargo             | `cargo build`     | `cargo nextest`  |
+| `go-gin`          | Go / Gin                        | `go build ./...`  | `go test ./...`  |
+| `node-nest`       | Node / NestJS / pnpm            | `pnpm build`      | `pnpm test`      |
+| `monorepo`        | Turborepo / Nx / pnpm workspaces | per-package      | per-package      |
+| `polyglot`        | Mixed stacks                    | Make/Just         | per-language     |
+| `data-science`    | Python / Jupyter / dbt          | `uv sync`         | `pytest` + `nbqa` |
+
+## 🔒 Compliance overlays
+
+Layer one or more on top of a profile:
+
+```bash
+bash $CONJURE_HOME/compliance/hipaa/apply.sh .
+bash $CONJURE_HOME/compliance/soc2/apply.sh  .
+bash $CONJURE_HOME/compliance/gdpr/apply.sh  .
+bash $CONJURE_HOME/compliance/pci/apply.sh   .
 ```
 
-Plus root: `CLAUDE.md`, `.claudeignore`, `.editorconfig`, `.gitattributes`,
-and `docs/ARCHITECTURE.md` / `RUNBOOK.md` / `GLOSSARY.md` / `adr/` scaffolds.
+Each overlay adds: CLAUDE.md non-negotiables, pre-commit guard hooks (e.g.
+PHI pattern scan for HIPAA), and a controls checklist under `docs/compliance/`.
 
-## Stack profiles
+⚠️ Overlays make the AI less likely to produce non-compliant code. They do
+NOT make you compliant — that requires people + process + audit.
 
-Layered on top of the base init. Adds stack-specific rules, hooks, and
-recommended MCP servers.
+## 🔄 Migration from other tools
 
-| Profile | Apply with |
+Backup-before-mutate is automatic. Rollback is `mv .claude.backup-<ts> .claude`.
+
+| Source | Command |
 | --- | --- |
-| `java-spring`     | `conjure init existing --profile=java-spring .` |
-| `python-fastapi`  | `--profile=python-fastapi` |
-| `ts-next`         | `--profile=ts-next` |
-| `rust-axum`       | `--profile=rust-axum` |
-| `go-gin`          | `--profile=go-gin` |
-| `node-nest`       | `--profile=node-nest` |
-| `monorepo`        | `--profile=monorepo` |
-| `polyglot`        | `--profile=polyglot` |
-| `data-science`    | `--profile=data-science` |
+| Existing hand-rolled `.claude/` | `conjure migrate from-claude .` |
+| Cursor (`.cursorrules`, `.cursor/rules/`) | `conjure migrate from-cursor .` |
+| Aider (`.aider.conf.yml`, `CONVENTIONS.md`) | `conjure migrate from-aider .` |
+| Continue (`.continue/config.json`) | `conjure migrate from-continue .` |
+| GitHub Copilot (`.github/copilot-instructions.md`) | `conjure migrate from-copilot .` |
+| Windsurf (`.windsurfrules`) | `conjure migrate from-windsurf .` |
 
-## Compliance overlays
+See `MIGRATION-GUIDE.md` for details.
 
-Layer one or more on top of a profile when regulated:
+## 🧪 Quality
 
 ```bash
-bash /u01/conjure/compliance/hipaa/apply.sh /path/to/repo
-bash /u01/conjure/compliance/soc2/apply.sh  /path/to/repo
-bash /u01/conjure/compliance/gdpr/apply.sh  /path/to/repo
-bash /u01/conjure/compliance/pci/apply.sh   /path/to/repo
+$ bash tests/run.sh
+═══════════════════════════════════════════════════════════════════
+PASS: 112    FAIL: 0
+═══════════════════════════════════════════════════════════════════
 ```
 
-## Migration from other AI tools
+Every PR runs:
+- shellcheck on all `.sh` files
+- JSON Schema validation on all `.json` files
+- Frontmatter validation on every `SKILL.md` / agent `.md`
+- Size cap enforcement (CLAUDE.md ≤100, SKILL.md ≤200, agent ≤80)
+- `@import` detection (forbidden in CLAUDE.md)
+- Exit code check on hooks (must be `exit 2`, never `exit 1`)
+- Migration coverage (every documented source has a working script)
+- Profile + compliance coverage (every documented overlay applies cleanly)
 
-| Source | Detect | Migrate |
-| --- | --- | --- |
-| Hand-rolled `CLAUDE.md` / `.claude/` | `migrations/from-claude/detect.sh` | `conjure migrate from-claude` |
-| Cursor (`.cursorrules`, `.cursor/rules/*.mdc`) | auto | `conjure migrate from-cursor` |
-| Aider (`.aider.conf.yml`, `CONVENTIONS.md`) | auto | `conjure migrate from-aider` |
-| Continue (`.continue/config.json`) | auto | `conjure migrate from-continue` |
-| GitHub Copilot (`.github/copilot-instructions.md`) | auto | `conjure migrate from-copilot` |
-| Windsurf (`.windsurfrules`) | auto | `conjure migrate from-windsurf` |
-
-Backup-before-mutate is automatic. Rollback is trivial:
-`mv .claude.backup-<timestamp> .claude`.
-
-## GSD integration
-
-Conjure develops via [GSD](https://github.com/<gsd-org>/gsd) — phase-driven
-planning with atomic commits. GSD orchestrators can call `conjure init` to
-scaffold the harness for projects it manages. See `planning/GSD-INTEGRATION.md`.
-
-## Documentation
+## 📖 Documentation
 
 | Doc | What |
 | --- | --- |
-| `PROMPT.md` | The master prompt — paste into Claude Code |
-| `MIGRATION-GUIDE.md` | Safe migration playbook |
-| `FAILURE-MODES.md` | What to do when things break |
+| [`PROMPT.md`](PROMPT.md) | The master prompt — paste into Claude Code |
+| [`MIGRATION-GUIDE.md`](MIGRATION-GUIDE.md) | Safe migration playbook |
+| [`FAILURE-MODES.md`](FAILURE-MODES.md) | Symptom → cause → fix for every common breakage |
+| [`COMPARISON.md`](COMPARISON.md) | How Conjure compares to alternatives |
 | `checklists/NEW-PROJECT.md` | Greenfield step-by-step |
 | `checklists/EXISTING-PROJECT.md` | Brownfield step-by-step |
 | `checklists/AUDIT.md` | Periodic health check |
-| `checklists/ONBOARDING.md` | Onboard new dev to a Conjure-configured repo |
+| `checklists/ONBOARDING.md` | Onboard new dev to a Conjure repo |
 | `reference/BEST-PRACTICES.md` | 2026 consolidated, eval-backed |
-| `reference/TOOLS-CATALOG.md` | Every tool worth knowing |
+| `reference/TOOLS-CATALOG.md` | Every CLI tool worth knowing |
 | `reference/MCP-SERVERS.md` | Which MCPs to install + configs |
 | `reference/ANTI-PATTERNS.md` | What NOT to do (with evidence) |
-| `reference/SIZING.md` | Line counts and token budgets |
+| `reference/SIZING.md` | Line counts + token budgets |
 | `reference/COMPACTION.md` | Surviving context compression |
 | `reference/PROMPTING-PATTERNS.md` | Trigger-action and other patterns |
-| `planning/ROADMAP.md` | What's next |
-| `CHANGELOG.md` | What changed |
-| `CONTRIBUTING.md` | How to contribute |
-| `SECURITY.md` | Security policy |
+| `planning/ROADMAP.md` | What's planned next |
+| `planning/GSD-INTEGRATION.md` | GSD workflow integration |
+| [`CHANGELOG.md`](CHANGELOG.md) | What changed per version |
+| [`CONTRIBUTING.md`](CONTRIBUTING.md) | How to contribute |
+| [`SECURITY.md`](SECURITY.md) | Security policy |
+| [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md) | Contributor Covenant |
+| [`SUPPORT.md`](SUPPORT.md) | Where to get help |
 
-## Principles
+## 🎓 Core principles (10)
 
 1. **Less context = better output.** ETH Zurich + Anthropic eval data.
-2. **`@imports` load eagerly** — not a token saving. Use prose references.
+2. **`@imports` load eagerly.** Use prose refs or skills instead.
 3. **Skills are the real lazy loader.** Progressive disclosure.
 4. **Hooks > advisory rules.** Promote non-negotiables to hooks.
 5. **Subagents isolate context.** Verbose work in fresh windows.
 6. **Persistent graph > re-reading files.** Build once, query forever.
-7. **Trigger-action format.** "WHEN X, DO Y" outperforms general guidance.
-8. **Order matters.** CLAUDE.md is read top-down; later sections summarized first.
+7. **Trigger-action format.** "WHEN X, DO Y" beats general guidance.
+8. **Order matters.** Top of CLAUDE.md survives compaction; non-negotiables first.
 9. **Compound engineering.** Every correction → candidate rule promotion.
 10. **Cite file:line.** So future Claude can verify.
 
-## License
+## 🤝 Contributing
 
-MIT — see `LICENSE`.
+PRs welcome. See [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
-## Contributing
+- Bug? Open an [issue](https://github.com/<org>/conjure/issues/new?template=bug_report.yml).
+- Feature? Use the [feature request template](https://github.com/<org>/conjure/issues/new?template=feature_request.yml).
+- Question? Use [Discussions](https://github.com/<org>/conjure/discussions).
+- Security? See [`SECURITY.md`](SECURITY.md) — do not open public issues.
 
-See `CONTRIBUTING.md`. PRs welcome. Use `tests/run.sh` before submitting.
+## 🛣 Roadmap
+
+- **v0.3.0** — test fixtures per profile, skill firing telemetry, cost estimator.
+- **v0.4.0** — marketplace publication, Homebrew formula, Docker image, `conjure publish-skill`.
+- **v0.5.0** — interactive 3-way merge for updates, drift detector, auto-PR bot.
+- **v0.6.0** — workspace mode, cross-repo graphify orchestration.
+- **v1.0.0** — frozen schemas, signed releases, ≥10 production teams.
+
+See [`planning/ROADMAP.md`](planning/ROADMAP.md).
+
+## ⚖ License
+
+[MIT](LICENSE) — use freely. Attribution appreciated, not required.
+
+## 🌟 Star history
+
+<!-- Once on GitHub:
+[![Star History Chart](https://api.star-history.com/svg?repos=<org>/conjure&type=Date)](https://star-history.com/#<org>/conjure&Date)
+-->
+
+## 🙏 Built on
+
+- [Claude Code](https://code.claude.com/) by Anthropic
+- [graphify](https://graphify.net/) for persistent knowledge graphs
+- [context7](https://github.com/upstash/context7) for live docs
+- [repomix](https://github.com/yamadashy/repomix), [ast-grep](https://ast-grep.github.io/), [firecrawl](https://www.firecrawl.dev/)
+- Eval data from Anthropic's published benchmarks + the 2,455-eval community study
+- ETH Zurich research on context size and task success
+- GSD workflow (Get Shit Done) for our own development
+
+---
+
+<div align="center">
+
+**Conjure** — *Code grows on Conjure the way a vine grows on a garden frame:
+structured but free.*
+
+Made with ⚙ by [Mohannad Ahmad](mailto:mohannad.a@protonmail.com)
+
+</div>

@@ -1,0 +1,82 @@
+name: Bug report
+description: Something doesn't work as expected
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for filing a bug. Please complete the fields below — incomplete
+        reports are harder to triage.
+
+  - type: input
+    id: conjure-version
+    attributes:
+      label: Conjure version
+      description: Output of `conjure version`
+      placeholder: "conjure 0.2.0"
+    validations:
+      required: true
+
+  - type: input
+    id: claude-version
+    attributes:
+      label: Claude Code version
+      placeholder: "2.1.X"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - macOS
+        - Linux
+        - WSL2
+        - Native Windows
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-ran
+    attributes:
+      label: What did you run?
+      description: Exact commands + relevant config snippets.
+      render: bash
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect?
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: What happened instead?
+      description: Include exact error messages, stack traces, screenshots if relevant.
+    validations:
+      required: true
+
+  - type: textarea
+    id: audit
+    attributes:
+      label: Audit output (if relevant)
+      description: Output of `conjure audit /path/to/repo`
+      render: text
+
+  - type: checkboxes
+    id: prerequisites
+    attributes:
+      label: Pre-flight
+      options:
+        - label: I have read `FAILURE-MODES.md`
+          required: true
+        - label: I have searched existing issues
+          required: true
+        - label: I have run `conjure audit` and included relevant output
+          required: false

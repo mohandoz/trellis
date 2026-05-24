@@ -5,6 +5,29 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.2.1] — 2026-05-24
+
+### Added
+- **Cross-platform Node.js hooks** at `templates/hooks-nodejs/` — `.mjs`
+  parallel set for native Windows compatibility (per 2026 best-practice
+  guidance to invoke `node` rather than platform-specific shells).
+- `install.sh` — `curl -sSL | bash` one-line installer; idempotent;
+  configures PATH for zsh/bash/fish; verifies install.
+- `CODE_OF_CONDUCT.md` (Contributor Covenant 2.1).
+- `SUPPORT.md` — where to get help with response expectations.
+- `COMPARISON.md` — honest comparison vs awesome-claude-code-toolkit,
+  claude-code-plugin-template, TemplateClaw, oh-my-zsh-style framework,
+  CCHub, idea-factory, ralph-loop, and manual `.claude/`.
+- `.github/ISSUE_TEMPLATE/{bug_report.yml,feature_request.yml,config.yml}`.
+- `.github/PULL_REQUEST_TEMPLATE.md`.
+- `.github/FUNDING.yml` (placeholder for sponsorship platforms).
+- **Viral README**: badges, feature-table layout, comparison section,
+  star-history placeholder, social-proof phrasing per 2026 README research.
+
+### Fixed
+- Stale `/u01/claude-init/` path references in `PROMPT.md` and
+  `checklists/` updated to `/u01/conjure/` + `conjure audit` CLI form.
+
 ## [0.2.0] — 2026-05-24
 
 ### Added

@@ -47,7 +47,7 @@ Inspect:
 
 ## Validation
 
-- [ ] `bash /u01/claude-init/scripts/audit-setup.sh .` passes.
+- [ ] `conjure audit .` passes (or `bash /u01/conjure/scripts/audit-setup.sh .`).
 - [ ] Open a fresh Claude Code session. Ask: "What does this project do? How is it organized?" Confirm answer is accurate WITHOUT Claude having to read more than CLAUDE.md + 1 skill.
 - [ ] Ask Claude a typical task ("add endpoint X" / "fix Y") and verify it loads only the relevant skill.
 
