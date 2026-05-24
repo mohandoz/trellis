@@ -206,4 +206,4 @@ conjure init existing
 
 - `reference/ANTI-PATTERNS.md` — common mistakes and fixes.
 - `checklists/AUDIT.md` — periodic health check.
-- File an issue at: https://github.com/<org>/conjure/issues
+- File an issue at: https://github.com/mohandoz/conjure/issues

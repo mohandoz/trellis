@@ -5,8 +5,8 @@
   "description": "Production-grade Claude Code harness kit. Lazy-loaded skills, isolated subagents, deterministic hooks, knowledge-graph integration, multi-stack profiles, compliance overlays, safe migration from other AI tools.",
   "author": "Mohannad Ahmad",
   "license": "MIT",
-  "repository": "https://github.com/<org>/conjure",
-  "homepage": "https://github.com/<org>/conjure#readme",
+  "repository": "https://github.com/mohandoz/conjure",
+  "homepage": "https://github.com/mohandoz/conjure#readme",
   "keywords": [
     "claude-code",
     "harness",

@@ -45,7 +45,7 @@ Development is GSD-style. Each version = a milestone. Each feature = a phase.
 
 - ⚪ Publish to Claude Code Marketplace (via `.claude-plugin/marketplace.json`)
 - ⚪ Homebrew formula `brew install conjure`
-- ⚪ Curl-bash installer: `curl -sSL conjure.dev/install | bash`
+- ⚪ Curl-bash installer: `curl -sSL raw.githubusercontent.com/mohandoz/conjure/main/install.sh | bash`
 - ⚪ Docker image with all tools preinstalled (graphify, ast-grep, gitleaks, repomix)
 - ⚪ `conjure publish-skill <name>` — contribute project-specific skill back to the kit
 - ⚪ Org overlay system: base kit + private overlay repo per organization
@@ -63,7 +63,7 @@ Development is GSD-style. Each version = a milestone. Each feature = a phase.
 - ⚪ Workspace mode: `conjure workspace init` for shared skills across repos
 - ⚪ Cross-repo graph: orchestrate `graphify merge-graphs` across project list
 - ⚪ Shared `.claude/skills/` via symlink or git submodule
-- ⚪ Org-wide search: "where does <org> use pattern X" via aggregated graphs
+- ⚪ Org-wide search: "where does mohandoz use pattern X" via aggregated graphs
 
 ## v1.0.0 — Stability commitment ⚪
 

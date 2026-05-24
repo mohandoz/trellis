@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Conjure installer. Designed for `curl -sSL https://conjure.dev/install.sh | bash`.
+# Conjure installer. Designed for `curl -sSL https://raw.githubusercontent.com/mohandoz/conjure/main/install.sh | bash`.
 #
 # Installs Conjure into ~/.conjure and adds `conjure` to your PATH.
 # Set CONJURE_HOME or CONJURE_VERSION to override defaults.
@@ -10,7 +10,7 @@ set -euo pipefail
 
 CONJURE_HOME="${CONJURE_HOME:-$HOME/.conjure}"
 CONJURE_VERSION="${CONJURE_VERSION:-main}"
-CONJURE_REPO="${CONJURE_REPO:-https://github.com/<org>/conjure.git}"
+CONJURE_REPO="${CONJURE_REPO:-https://github.com/mohandoz/conjure.git}"
 
 bold() { printf "\033[1m%s\033[0m\n" "$1"; }
 ok()   { printf "  \033[32m✓\033[0m %s\n" "$1"; }

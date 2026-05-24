@@ -9,9 +9,9 @@
   "tags": ["scaffold", "harness", "skills", "hooks", "subagents", "knowledge-graph", "migration", "stack-profile", "compliance"],
   "icon": "conjure-logo.svg",
   "screenshots": [],
-  "homepage": "https://github.com/<org>/conjure",
-  "repository": "https://github.com/<org>/conjure",
-  "issues": "https://github.com/<org>/conjure/issues",
+  "homepage": "https://github.com/mohandoz/conjure",
+  "repository": "https://github.com/mohandoz/conjure",
+  "issues": "https://github.com/mohandoz/conjure/issues",
   "license": "MIT",
   "author": {
     "name": "Mohannad Ahmad",
@@ -23,7 +23,7 @@
   },
   "install": {
     "type": "git",
-    "url": "https://github.com/<org>/conjure.git",
+    "url": "https://github.com/mohandoz/conjure.git",
     "branch": "main"
   }
 }

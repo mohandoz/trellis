@@ -4,11 +4,11 @@
 
 | Need | Channel |
 | --- | --- |
-| Bug report | [Open an issue](https://github.com/<org>/conjure/issues/new?template=bug_report.yml) |
-| Feature request | [Open an issue](https://github.com/<org>/conjure/issues/new?template=feature_request.yml) |
-| Question / discussion | [GitHub Discussions](https://github.com/<org>/conjure/discussions) |
+| Bug report | [Open an issue](https://github.com/mohandoz/conjure/issues/new?template=bug_report.yml) |
+| Feature request | [Open an issue](https://github.com/mohandoz/conjure/issues/new?template=feature_request.yml) |
+| Question / discussion | [GitHub Discussions](https://github.com/mohandoz/conjure/discussions) |
 | Security issue | See `SECURITY.md` (do NOT open a public issue) |
-| Live chat | [Discord](https://discord.gg/<placeholder>) |
+| Live chat | GitHub Discussions (above) |
 
 ## Self-help before asking
 

@@ -61,7 +61,7 @@ foot-guns, cross-platform Node.js hooks.
 
 ```bash
 # 1. Install
-curl -sSL https://conjure.dev/install.sh | bash
+curl -sSL https://raw.githubusercontent.com/mohandoz/conjure/main/install.sh | bash
 
 # 2. Initialize a project (auto-detects new or existing)
 cd /path/to/your/repo
@@ -241,9 +241,9 @@ Every PR runs:
 
 PRs welcome. See [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
-- Bug? Open an [issue](https://github.com/<org>/conjure/issues/new?template=bug_report.yml).
-- Feature? Use the [feature request template](https://github.com/<org>/conjure/issues/new?template=feature_request.yml).
-- Question? Use [Discussions](https://github.com/<org>/conjure/discussions).
+- Bug? Open an [issue](https://github.com/mohandoz/conjure/issues/new?template=bug_report.yml).
+- Feature? Use the [feature request template](https://github.com/mohandoz/conjure/issues/new?template=feature_request.yml).
+- Question? Use [Discussions](https://github.com/mohandoz/conjure/discussions).
 - Security? See [`SECURITY.md`](SECURITY.md) — do not open public issues.
 
 ## 🛣 Roadmap
@@ -263,7 +263,7 @@ See [`planning/ROADMAP.md`](planning/ROADMAP.md).
 ## 🌟 Star history
 
 <!-- Once on GitHub:
-[![Star History Chart](https://api.star-history.com/svg?repos=<org>/conjure&type=Date)](https://star-history.com/#<org>/conjure&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=mohandoz/conjure&type=Date)](https://star-history.com/#mohandoz/conjure&Date)
 -->
 
 ## 🙏 Built on
