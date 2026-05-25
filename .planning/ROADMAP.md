@@ -43,7 +43,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 Plans:
 **Wave 1**
-- [ ] 01-01-PLAN.md — Extract scripts/preflight.sh, wire conjure preflight subcommand, add preflight test section (SAFE-04)
+- [x] 01-01-PLAN.md — Extract scripts/preflight.sh, wire conjure preflight subcommand, add preflight test section (SAFE-04)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 01-02-PLAN.md — Update settings.json.tmpl + init-project.sh + audit-setup.sh for node .mjs hook wiring, add template lint assertions (SAFE-03)
@@ -150,7 +150,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Pre-flight & Cross-Platform Hooks | 0/2 | Not started | - |
+| 1. Pre-flight & Cross-Platform Hooks | 1/2 | In Progress|  |
 | 2. Dry-Run Enforcement Chokepoint | 0/TBD | Not started | - |
 | 3. Sandboxed Per-Profile Fixtures | 0/TBD | Not started | - |
 | 4. Regression Suite & Dry-Run Proof | 0/TBD | Not started | - |
