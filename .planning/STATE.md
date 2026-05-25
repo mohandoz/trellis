@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v0.4.0
 milestone_name: Distribution + Ecosystem
 status: executing
-last_updated: "2026-05-25T19:26:09.154Z"
+last_updated: "2026-05-25T19:33:17.940Z"
 last_activity: 2026-05-25
 progress:
   total_phases: 8
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 10
-  completed_plans: 8
-  percent: 25
+  completed_plans: 10
+  percent: 38
 ---
 
 # Project State
@@ -25,11 +25,11 @@ See: .planning/PROJECT.md (updated 2026-05-25)
 ## Current Position
 
 Phase: 10 (marketplace-publish) — EXECUTING
-Plan: 3 of 4
+Plan: 4 of 4
 Status: Ready to execute
 Last activity: 2026-05-25
 
-Progress: [████████░░] 80%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -55,6 +55,7 @@ Progress: [████████░░] 80%
 
 *Updated after each plan completion*
 | Phase 10-marketplace-publish P03 | 49 | 2 tasks | 1 files |
+| Phase 10 P04 | 2m | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -65,6 +66,7 @@ Progress: [████████░░] 80%
 - [Docker base]: debian:bookworm-slim (not Alpine) to avoid musl libc breaks for optional Go/Rust tools
 - [Homebrew]: Separate tap repo `mohandoz/homebrew-conjure`; formula pinned to tagged tarball SHA256 only
 - [Phase ?]: Three new CI steps (version-consistency, claude CLI install, plugin validate) added to test job — MKTPL-02 and MKTPL-03 delivered
+- [Phase ?]: Script-copy sandbox isolation for publish-plugin.sh regression tests — script self-resolves CONJURE_HOME, env override ignored
 
 ### Pending Todos
 
@@ -87,6 +89,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-05-25T19:26:09.150Z
-Stopped at: Phase 10 context gathered
+Last session: 2026-05-25T19:33:17.935Z
+Stopped at: Completed 10-04-PLAN.md — MKTPL regression tests
 Resume file: None

@@ -14,7 +14,7 @@ Make Conjure installable and shareable through every standard channel while clea
 
 - [x] **Phase 08: Nyquist Compliance Backfill** - Write VALIDATION.md for phases 01, 02, 04, 05, 06, 07 (completed 2026-05-25)
 - [x] **Phase 09: 3-Way Merge** - Implement `cmd_update --apply` via `lib/merge.sh` + base snapshot (completed 2026-05-25)
-- [ ] **Phase 10: Marketplace Publish** - Wire and validate the Claude Code Marketplace plugin manifest
+- [x] **Phase 10: Marketplace Publish** - Wire and validate the Claude Code Marketplace plugin manifest (completed 2026-05-25)
 - [ ] **Phase 11: Skill Publishing** - Add `conjure publish-skill` command with egress scan + PR flow
 - [ ] **Phase 12: Org Overlay** - Implement `conjure init --overlay` + `conjure refresh-overlay` system
 - [ ] **Phase 13: Homebrew Tap** - Publish `mohandoz/homebrew-conjure` formula and auto-bump action
@@ -70,7 +70,7 @@ Plans:
 - [x] 10-01-PLAN.md — Restructure .claude-plugin/marketplace.json + plugin.json to pass `claude plugin validate` (MKTPL-01)
 - [x] 10-02-PLAN.md — Create scripts/publish-plugin.sh + cmd_publish dispatch in cli/conjure (MKTPL-01, MKTPL-04)
 - [x] 10-03-PLAN.md — Add version-consistency check + claude CLI install + plugin validate steps to ci.yml (MKTPL-02, MKTPL-03)
-- [ ] 10-04-PLAN.md — Inline MKTPL regression tests in tests/run.sh (MKTPL-01, MKTPL-02, MKTPL-04)
+- [x] 10-04-PLAN.md — Inline MKTPL regression tests in tests/run.sh (MKTPL-01, MKTPL-02, MKTPL-04)
 
 ### Phase 11: Skill Publishing
 **Goal**: A developer can contribute a project skill to the public kit (or a private org kit) through a single command that validates safety and opens a PR
@@ -133,7 +133,7 @@ Plans:
 |-------|-----------|----------------|--------|-----------|
 | 08. Nyquist Compliance Backfill | v0.4.0 | 3/3 | Complete    | 2026-05-25 |
 | 09. 3-Way Merge | v0.4.0 | 3/3 | Complete    | 2026-05-25 |
-| 10. Marketplace Publish | v0.4.0 | 3/4 | In Progress|  |
+| 10. Marketplace Publish | v0.4.0 | 4/4 | Complete   | 2026-05-25 |
 | 11. Skill Publishing | v0.4.0 | 0/TBD | Not started | - |
 | 12. Org Overlay | v0.4.0 | 0/TBD | Not started | - |
 | 13. Homebrew Tap | v0.4.0 | 0/TBD | Not started | - |

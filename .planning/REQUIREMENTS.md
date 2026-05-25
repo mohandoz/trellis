@@ -11,9 +11,9 @@
 ### Marketplace Publish (DIST-01)
 
 - [x] **MKTPL-01**: User can run `conjure publish` to update `.claude-plugin/marketplace.json` with the current release SHA and validate the manifest locally
-- [ ] **MKTPL-02**: CI validates that `version` fields in `marketplace.json` and `plugin.json` match the `VERSION` file on every PR
-- [ ] **MKTPL-03**: CI runs `claude plugin validate .` on every PR and fails on schema errors
-- [ ] **MKTPL-04**: User can submit the plugin to the community catalog (`anthropics/claude-plugins-community`) via guided `conjure publish --submit` output (process documentation + checklist; automation not required)
+- [x] **MKTPL-02**: CI validates that `version` fields in `marketplace.json` and `plugin.json` match the `VERSION` file on every PR
+- [x] **MKTPL-03**: CI runs `claude plugin validate .` on every PR and fails on schema errors
+- [x] **MKTPL-04**: User can submit the plugin to the community catalog (`anthropics/claude-plugins-community`) via guided `conjure publish --submit` output (process documentation + checklist; automation not required)
 
 ### 3-Way Merge — `cmd_update --apply` (TECH-01)
 
