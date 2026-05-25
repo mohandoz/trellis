@@ -91,7 +91,7 @@ Plans:
 
 Plans:
 **Wave 1** *(foundation — no dependencies)*
-- [ ] 03-01-PLAN.md — Create tests/lib/sandbox.sh (sourced isolation helper) and scripts/regen-fixtures.sh (fixture generator) (TEST-02)
+- [x] 03-01-PLAN.md — Create tests/lib/sandbox.sh (sourced isolation helper) and scripts/regen-fixtures.sh (fixture generator) (TEST-02)
 
 **Wave 2** *(blocked on 03-01)*
 - [ ] 03-02-PLAN.md — Run regen-fixtures.sh to generate and commit all 9 green profile fixtures; verify each audits exit 0 (TEST-01)
@@ -171,7 +171,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 |-------|----------------|--------|-----------|
 | 1. Pre-flight & Cross-Platform Hooks | 2/2 | Complete    | 2026-05-24 |
 | 2. Dry-Run Enforcement Chokepoint | 6/6 | Complete    | 2026-05-24 |
-| 3. Sandboxed Per-Profile Fixtures | 0/3 | Not started | - |
+| 3. Sandboxed Per-Profile Fixtures | 1/3 | In Progress|  |
 | 4. Regression Suite & Dry-Run Proof | 0/TBD | Not started | - |
 | 5. README Demo | 0/TBD | Not started | - |
 | 6. Cost Estimator | 0/TBD | Not started | - |
