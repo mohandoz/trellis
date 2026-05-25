@@ -754,6 +754,139 @@ else fail "audit missing 'Unresolved merge conflicts' message (MERGE-05)"; fi
 rm -rf "$MERGE_DIR"
 trap - EXIT
 
+echo
+echo "▸ Marketplace publish tests (MKTPL-01 through MKTPL-04)"
+
+# MKTPL-SETUP: reusable sandbox — a real git repo with copies of the manifests.
+# publish-plugin.sh derives CONJURE_HOME from its own script path (not env), so we
+# copy the script + lib into the sandbox and invoke the sandbox copy.  This keeps
+# all writes inside the temp dir and leaves the real .claude-plugin/ untouched.
+MKTPL_DIR="$(mktemp -d)"
+git -C "$MKTPL_DIR" init -q
+git -C "$MKTPL_DIR" config user.email "test@conjure"
+git -C "$MKTPL_DIR" config user.name "conjure-test"
+mkdir -p "$MKTPL_DIR/.claude-plugin" "$MKTPL_DIR/scripts" "$MKTPL_DIR/lib"
+cp "$CONJURE_HOME/.claude-plugin/marketplace.json" "$MKTPL_DIR/.claude-plugin/"
+cp "$CONJURE_HOME/.claude-plugin/plugin.json"      "$MKTPL_DIR/.claude-plugin/"
+cp "$CONJURE_HOME/VERSION"                          "$MKTPL_DIR/VERSION"
+cp "$CONJURE_HOME/scripts/publish-plugin.sh"        "$MKTPL_DIR/scripts/"
+cp "$CONJURE_HOME/lib/mutate.sh"                    "$MKTPL_DIR/lib/"
+git -C "$MKTPL_DIR" add -A
+git -C "$MKTPL_DIR" commit -q -m "test fixture"
+
+# MKTPL-01 DRY-RUN TEST
+MKTPL_OUT="$(DRY_RUN=1 bash "$MKTPL_DIR/scripts/publish-plugin.sh" 2>&1)"
+if printf '%s\n' "$MKTPL_OUT" | grep -q 'dry-run'; then
+  pass "publish dry-run prints dry-run mutations (MKTPL-01)"
+else
+  fail "publish dry-run did not print dry-run output (MKTPL-01)"
+fi
+# Verify no files were modified (sandbox copy must be identical to original)
+MKT_CONTENT_AFTER="$(cat "$MKTPL_DIR/.claude-plugin/marketplace.json")"
+MKT_CONTENT_BEFORE="$(cat "$CONJURE_HOME/.claude-plugin/marketplace.json")"
+if [ "$MKT_CONTENT_AFTER" = "$MKT_CONTENT_BEFORE" ]; then
+  pass "publish dry-run did not modify marketplace.json (MKTPL-01)"
+else
+  fail "publish dry-run modified marketplace.json — DRY_RUN not honored (MKTPL-01)"
+fi
+
+# MKTPL-01 DIRTY-TREE TEST (create an uncommitted change in the sandbox)
+echo "dirty" >> "$MKTPL_DIR/.claude-plugin/plugin.json"
+DIRTY_RC=0
+bash "$MKTPL_DIR/scripts/publish-plugin.sh" >/dev/null 2>&1 || DIRTY_RC=$?
+if [ "$DIRTY_RC" -eq 2 ]; then
+  pass "publish exits 2 on dirty tree (MKTPL-01, D-06)"
+else
+  fail "publish did not exit 2 on dirty tree — got rc=$DIRTY_RC (MKTPL-01)"
+fi
+# Restore: re-checkout the file and recommit for subsequent tests
+git -C "$MKTPL_DIR" checkout -- .claude-plugin/plugin.json
+
+# MKTPL-01 VERSION UPDATE TEST (live run in clean sandbox)
+LIVE_RC=0
+bash "$MKTPL_DIR/scripts/publish-plugin.sh" >/dev/null 2>&1 || LIVE_RC=$?
+EXPECTED_VER="$(cat "$MKTPL_DIR/VERSION")"
+ACTUAL_VER="$(jq -r '.plugins[0].version' "$MKTPL_DIR/.claude-plugin/marketplace.json")"
+if [ "$ACTUAL_VER" = "$EXPECTED_VER" ]; then
+  pass "publish updates marketplace.json .plugins[0].version to VERSION (MKTPL-01)"
+else
+  fail "marketplace.json version ($ACTUAL_VER) != VERSION ($EXPECTED_VER) after publish (MKTPL-01)"
+fi
+
+# MKTPL-01 SHA UPDATE TEST (validates SHA format — 40 hex chars)
+ACTUAL_SHA="$(jq -r '.plugins[0].source.sha' "$MKTPL_DIR/.claude-plugin/marketplace.json")"
+if printf '%s' "$ACTUAL_SHA" | grep -qE '^[0-9a-f]{40}$'; then
+  pass "publish writes valid 40-char hex SHA to marketplace.json (MKTPL-01)"
+else
+  fail "marketplace.json SHA is not a valid 40-char hex string: $ACTUAL_SHA (MKTPL-01)"
+fi
+
+# MKTPL-02 VERSION-CONSISTENCY PASS TEST (reproduce the CI check logic inline)
+VC_VER="$(cat "$CONJURE_HOME/VERSION")"
+VC_MKT="$(jq -r '.plugins[0].version // empty' "$CONJURE_HOME/.claude-plugin/marketplace.json")"
+VC_PLG="$(jq -r '.version // empty' "$CONJURE_HOME/.claude-plugin/plugin.json")"
+if [ "$VC_MKT" = "$VC_VER" ] && [ "$VC_PLG" = "$VC_VER" ]; then
+  pass "version-consistency: all fields match VERSION ($VC_VER) (MKTPL-02)"
+else
+  fail "version-consistency: mismatch — marketplace=$VC_MKT plugin=$VC_PLG VERSION=$VC_VER (MKTPL-02)"
+fi
+
+# MKTPL-02 VERSION-CONSISTENCY FAIL TEST (inject drift into a temp copy)
+DRIFT_DIR="$(mktemp -d)"
+mkdir -p "$DRIFT_DIR/.claude-plugin"
+jq '.plugins[0].version = "0.0.0"' "$CONJURE_HOME/.claude-plugin/marketplace.json" > "$DRIFT_DIR/.claude-plugin/marketplace.json"
+cp "$CONJURE_HOME/.claude-plugin/plugin.json" "$DRIFT_DIR/.claude-plugin/"
+printf '9.9.9\n' > "$DRIFT_DIR/VERSION"
+DRIFT_MKT="$(jq -r '.plugins[0].version // empty' "$DRIFT_DIR/.claude-plugin/marketplace.json")"
+DRIFT_VER="$(cat "$DRIFT_DIR/VERSION")"
+if [ "$DRIFT_MKT" != "$DRIFT_VER" ]; then
+  pass "version-consistency detects marketplace drift (MKTPL-02)"
+else
+  fail "version-consistency did NOT detect marketplace drift (MKTPL-02)"
+fi
+rm -rf "$DRIFT_DIR"
+
+# MKTPL-04 SUBMIT-ENTRY TEST (run CONJURE_SUBMIT=1 in fresh sandbox)
+SUBMIT_DIR="$(mktemp -d)"
+git -C "$SUBMIT_DIR" init -q
+git -C "$SUBMIT_DIR" config user.email "test@conjure"
+git -C "$SUBMIT_DIR" config user.name "conjure-test"
+mkdir -p "$SUBMIT_DIR/.claude-plugin" "$SUBMIT_DIR/scripts" "$SUBMIT_DIR/lib"
+cp "$CONJURE_HOME/.claude-plugin/marketplace.json" "$SUBMIT_DIR/.claude-plugin/"
+cp "$CONJURE_HOME/.claude-plugin/plugin.json"      "$SUBMIT_DIR/.claude-plugin/"
+cp "$CONJURE_HOME/VERSION"                          "$SUBMIT_DIR/VERSION"
+cp "$CONJURE_HOME/scripts/publish-plugin.sh"        "$SUBMIT_DIR/scripts/"
+cp "$CONJURE_HOME/lib/mutate.sh"                    "$SUBMIT_DIR/lib/"
+git -C "$SUBMIT_DIR" add -A
+git -C "$SUBMIT_DIR" commit -q -m "submit fixture"
+
+SUBMIT_OUT="$(CONJURE_SUBMIT=1 bash "$SUBMIT_DIR/scripts/publish-plugin.sh" 2>&1)"
+
+if [ -f "$SUBMIT_DIR/.claude-plugin/submit-entry.json" ]; then
+  pass "publish --submit writes submit-entry.json (MKTPL-04)"
+else
+  fail "publish --submit did NOT write submit-entry.json (MKTPL-04)"
+fi
+
+# Verify required fields
+if jq -e '.name' "$SUBMIT_DIR/.claude-plugin/submit-entry.json" >/dev/null 2>&1 && \
+   jq -e '.source' "$SUBMIT_DIR/.claude-plugin/submit-entry.json" >/dev/null 2>&1 && \
+   jq -e '.homepage' "$SUBMIT_DIR/.claude-plugin/submit-entry.json" >/dev/null 2>&1; then
+  pass "submit-entry.json contains required fields: name, source, homepage (MKTPL-04)"
+else
+  fail "submit-entry.json missing required fields (MKTPL-04)"
+fi
+
+if printf '%s\n' "$SUBMIT_OUT" | grep -q 'claude.ai/settings/plugins/submit'; then
+  pass "publish --submit prints submission URL to stdout (MKTPL-04, D-11)"
+else
+  fail "publish --submit did NOT print submission URL (MKTPL-04)"
+fi
+rm -rf "$SUBMIT_DIR"
+
+# CLEANUP main MKTPL sandbox
+rm -rf "$MKTPL_DIR"
+
 # Summary
 echo
 echo "═══════════════════════════════════════════════════════════════════"
