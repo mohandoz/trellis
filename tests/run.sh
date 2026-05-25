@@ -368,6 +368,76 @@ else
 fi
 rm -rf "$FM_DIR"
 
+echo
+echo "▸ Cost estimator tests (COST-01, COST-02, COST-03)"
+
+COST_FX="$CONJURE_HOME/tests/fixtures/python-fastapi"
+sandbox_setup "$COST_FX"
+trap 'rm -rf "$SANDBOX_DIR"' EXIT
+
+COST_OUT="$(CONJURE_COST=1 bash "$CONJURE_HOME/scripts/audit-setup.sh" "$SANDBOX_DIR" 2>&1)"
+COST_RC=$?
+
+# COST-01: section header present
+if printf '%s' "$COST_OUT" | grep -q "── Cost Estimate ──"; then
+  pass "cost section header present (COST-01)"
+else
+  fail "cost section header missing (COST-01)"
+fi
+
+# COST-02: label has ±20% band
+if printf '%s' "$COST_OUT" | grep -qE "Estimate: \\\$[0-9]+\.[0-9]{2} ±20%"; then
+  pass "cost label has ±20% band (COST-02)"
+else
+  fail "cost label format wrong — expected '±20%' (COST-02)"
+fi
+
+# COST-02: label contains pricing date
+if printf '%s' "$COST_OUT" | grep -q "prices:"; then
+  pass "cost label contains pricing date (COST-02)"
+else
+  fail "cost label missing pricing date (COST-02)"
+fi
+
+# COST-02: model name in output
+if printf '%s' "$COST_OUT" | grep -q "claude-sonnet-4-6"; then
+  pass "cost output names the model (COST-02)"
+else
+  fail "cost output missing model name (COST-02)"
+fi
+
+# COST-01: cost section does not crash
+if [ "$COST_RC" -le 2 ]; then
+  pass "cost section exit code ≤ 2 (COST-01)"
+else
+  fail "cost section crashed (rc=$COST_RC) (COST-01)"
+fi
+
+# COST-03: no network calls in default path
+NO_NET_COUNT=$(grep -v '^#' "$CONJURE_HOME/scripts/audit-setup.sh" | grep -cE "curl|fetch|http[s]?:" || true)
+if [ "$NO_NET_COUNT" -eq 0 ]; then
+  pass "audit-setup.sh has no network calls in default path (COST-03)"
+else
+  fail "audit-setup.sh has $NO_NET_COUNT network call(s) in default path (COST-03)"
+fi
+
+# COST-03: --exact fallback advisory when API key absent
+EXACT_OUT="$(CONJURE_COST=1 CONJURE_EXACT=1 ANTHROPIC_API_KEY="" bash "$CONJURE_HOME/scripts/audit-setup.sh" "$SANDBOX_DIR" 2>&1)"
+EXACT_RC=$?
+if printf '%s' "$EXACT_OUT" | grep -q "ANTHROPIC_API_KEY not set"; then
+  pass "--exact fallback advisory present when API key absent (COST-03)"
+else
+  fail "--exact fallback advisory missing (COST-03)"
+fi
+if [ "$EXACT_RC" -le 2 ]; then
+  pass "--exact fallback exits cleanly (rc=$EXACT_RC) (COST-03)"
+else
+  fail "--exact fallback crashed (rc=$EXACT_RC) (COST-03)"
+fi
+
+rm -rf "$SANDBOX_DIR"
+trap - EXIT
+
 # Summary
 echo
 echo "═══════════════════════════════════════════════════════════════════"
