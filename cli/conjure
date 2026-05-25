@@ -39,6 +39,7 @@ Usage:
   conjure install-mcp
   conjure preflight
   conjure publish [--submit] [--dry-run]
+  conjure publish-skill <name> [--to <org/repo>] [--dry-run]
   conjure version
   conjure help [<subcommand>]
 
@@ -277,6 +278,27 @@ cmd_publish() {
     bash "$CONJURE_HOME/scripts/publish-plugin.sh"
 }
 
+cmd_publish_skill() {
+  local skill_name="" target_repo="mohandoz/conjure" dryrun=0
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --to)        shift; target_repo="${1:-}" ;;
+      --to=*)      target_repo="${1#--to=}" ;;
+      --dry-run)   dryrun=1 ;;
+      --help|-h)   echo "Usage: conjure publish-skill <name> [--to <org/repo>] [--dry-run]"; return 0 ;;
+      -*)          echo "Unknown option: $1"; return 1 ;;
+      *)           skill_name="$1" ;;
+    esac
+    shift
+  done
+  [ -z "$skill_name" ] && {
+    echo "Usage: conjure publish-skill <name> [--to <org/repo>] [--dry-run]"
+    return 1
+  }
+  CONJURE_HOME="$CONJURE_HOME" DRY_RUN="$dryrun" TARGET_REPO="$target_repo" \
+    bash "$CONJURE_HOME/scripts/publish-skill.sh" "$skill_name"
+}
+
 cmd_help() {
   if [ -n "${1:-}" ]; then
     sed -n "/^cmd_$1()/,/^}/p" "$0" | head -20
@@ -295,6 +317,7 @@ case "${1:-help}" in
   install-mcp)     shift; cmd_install_mcp "$@"     ;;
   preflight)       shift; cmd_preflight "$@"       ;;
   publish)         shift; cmd_publish "$@"         ;;
+  publish-skill)   shift; cmd_publish_skill "$@"   ;;
   version|-v|--version) cmd_version                ;;
   help|-h|--help)  shift; cmd_help "$@"            ;;
   *)               echo "Unknown command: $1"; usage; exit 1 ;;

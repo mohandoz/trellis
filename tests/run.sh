@@ -887,6 +887,189 @@ rm -rf "$SUBMIT_DIR"
 # CLEANUP main MKTPL sandbox
 rm -rf "$MKTPL_DIR"
 
+echo
+echo "▸ SKILL publish-skill tests (SKILL-01 through SKILL-04)"
+
+# SKILL-SETUP: reusable sandbox — real git repo with committed SKILL.md.
+# publish-skill.sh derives CONJURE_HOME from its own script path, so copy
+# the script + lib into the sandbox. All writes stay inside the temp dir.
+SKILL_DIR="$(mktemp -d)"
+git -C "$SKILL_DIR" init -q
+git -C "$SKILL_DIR" config user.email "test@conjure"
+git -C "$SKILL_DIR" config user.name "conjure-test"
+mkdir -p "$SKILL_DIR/.claude/skills/test-skill" "$SKILL_DIR/scripts" "$SKILL_DIR/lib"
+printf -- '---\nname: test-skill\ndescription: A test skill that demonstrates the publish-skill validation pipeline end-to-end.\n---\n\n# test-skill\nSome clean content here with no egress patterns.\n' \
+  > "$SKILL_DIR/.claude/skills/test-skill/SKILL.md"
+cp "$CONJURE_HOME/scripts/publish-skill.sh" "$SKILL_DIR/scripts/"
+cp "$CONJURE_HOME/lib/mutate.sh"            "$SKILL_DIR/lib/"
+cp "$CONJURE_HOME/VERSION"                  "$SKILL_DIR/VERSION"
+git -C "$SKILL_DIR" add -A
+git -C "$SKILL_DIR" commit -q -m "add test-skill"
+# Tag the sandbox HEAD so the conjure "tagged release" guard passes (Pitfall 4).
+# Must be an annotated tag — git describe --exact-match ignores lightweight tags.
+git -C "$SKILL_DIR" tag -a "v$(cat "$CONJURE_HOME/VERSION")" -m "release"
+
+# Helper: run publish-skill.sh from inside SKILL_DIR (script uses pwd for skill path)
+skill_run() {
+  ( cd "$SKILL_DIR" && bash "$SKILL_DIR/scripts/publish-skill.sh" "$@" )
+}
+
+# SKILL-01: dry-run output
+SKILL_OUT="$(DRY_RUN=1 skill_run test-skill 2>&1)"
+if printf '%s\n' "$SKILL_OUT" | grep -q 'dry-run'; then
+  pass "publish-skill --dry-run prints dry-run accounting (SKILL-01)"
+else
+  fail "publish-skill --dry-run did not print dry-run output (SKILL-01)"
+fi
+
+# SKILL-01: size cap — 201-line SKILL.md exits 1
+python3 -c "print('---\nname: test-skill\ndescription: A test skill that demonstrates the publish-skill validation pipeline end-to-end.\n---'); [print('line') for _ in range(200)]" \
+  > "$SKILL_DIR/.claude/skills/test-skill/SKILL.md"
+SIZE_RC=0
+skill_run test-skill >/dev/null 2>&1 || SIZE_RC=$?
+if [ "$SIZE_RC" -eq 1 ]; then
+  pass "publish-skill exits 1 when skill exceeds 200-line cap (SKILL-01)"
+else
+  fail "publish-skill did not exit 1 on oversized skill — got rc=$SIZE_RC (SKILL-01)"
+fi
+git -C "$SKILL_DIR" checkout -- .claude/skills/test-skill/SKILL.md
+
+# SKILL-01: frontmatter missing name exits 1
+printf -- '---\ndescription: A test skill that demonstrates the publish-skill validation pipeline end-to-end.\n---\n\n# test-skill\nContent.\n' \
+  > "$SKILL_DIR/.claude/skills/test-skill/SKILL.md"
+NONAME_RC=0
+skill_run test-skill >/dev/null 2>&1 || NONAME_RC=$?
+if [ "$NONAME_RC" -eq 1 ]; then
+  pass "publish-skill exits 1 when frontmatter missing name (SKILL-01)"
+else
+  fail "publish-skill did not exit 1 on missing name — got rc=$NONAME_RC (SKILL-01)"
+fi
+git -C "$SKILL_DIR" checkout -- .claude/skills/test-skill/SKILL.md
+
+# SKILL-01: egress scan blocks curl
+printf -- '---\nname: test-skill\ndescription: A test skill that demonstrates the publish-skill validation pipeline end-to-end.\n---\n\ncurl https://example.com\n' \
+  > "$SKILL_DIR/.claude/skills/test-skill/SKILL.md"
+CURL_RC=0
+skill_run test-skill >/dev/null 2>&1 || CURL_RC=$?
+if [ "$CURL_RC" -eq 1 ]; then
+  pass "publish-skill exits 1 when body contains curl (SKILL-01)"
+else
+  fail "publish-skill did not exit 1 on curl egress — got rc=$CURL_RC (SKILL-01)"
+fi
+git -C "$SKILL_DIR" checkout -- .claude/skills/test-skill/SKILL.md
+
+# SKILL-01: egress scan blocks $SECRET
+printf -- '---\nname: test-skill\ndescription: A test skill that demonstrates the publish-skill validation pipeline end-to-end.\n---\n\necho $SECRET\n' \
+  > "$SKILL_DIR/.claude/skills/test-skill/SKILL.md"
+SECRET_RC=0
+skill_run test-skill >/dev/null 2>&1 || SECRET_RC=$?
+if [ "$SECRET_RC" -eq 1 ]; then
+  pass "publish-skill exits 1 when body contains \$SECRET (SKILL-01)"
+else
+  fail "publish-skill did not exit 1 on \$SECRET egress — got rc=$SECRET_RC (SKILL-01)"
+fi
+git -C "$SKILL_DIR" checkout -- .claude/skills/test-skill/SKILL.md
+
+# SKILL-01: clean skill passes all gates
+CLEAN_RC=0
+skill_run test-skill >/dev/null 2>&1 || CLEAN_RC=$?
+if [ "$CLEAN_RC" -eq 0 ]; then
+  pass "publish-skill exits 0 for valid clean skill (SKILL-01)"
+else
+  fail "publish-skill did not exit 0 on clean skill — got rc=$CLEAN_RC (SKILL-01)"
+fi
+
+# SKILL-02: gh present — printed output contains "gh pr create"
+STUB_BIN="$(mktemp -d)"
+printf '#!/bin/sh\nexit 0\n' > "$STUB_BIN/gh"
+chmod +x "$STUB_BIN/gh"
+SAVED_PATH="$PATH"
+PATH="$STUB_BIN:$PATH"
+GH_PRESENT_OUT="$(skill_run test-skill 2>&1)"
+PATH="$SAVED_PATH"
+rm -rf "$STUB_BIN"
+if printf '%s\n' "$GH_PRESENT_OUT" | grep -q 'gh pr create'; then
+  pass "publish-skill prints gh pr create when gh is present (SKILL-02)"
+else
+  fail "publish-skill did not print gh pr create with gh present (SKILL-02)"
+fi
+
+# SKILL-02: gh absent — printed output contains "manually" or github.com URL
+SAVED_PATH2="$PATH"
+GH_LOC="$(command -v gh 2>/dev/null || true)"
+FILTERED_PATH="$PATH"
+if [ -n "$GH_LOC" ]; then
+  GH_LOC_DIR="$(dirname "$GH_LOC")"
+  GIT_LOC_DIR="$(dirname "$(command -v git)")"
+  FILTERED_PATH="$(printf '%s' "$PATH" | tr ':' '\n' | grep -vxF "$GH_LOC_DIR" | tr '\n' ':' | sed 's/:$//')"
+  case ":$FILTERED_PATH:" in
+    *":$GIT_LOC_DIR:"*) ;;
+    *) FILTERED_PATH="${GIT_LOC_DIR}:${FILTERED_PATH}" ;;
+  esac
+fi
+NOGH_OUT="$(PATH="$FILTERED_PATH" skill_run test-skill 2>&1)"
+PATH="$SAVED_PATH2"
+if printf '%s\n' "$NOGH_OUT" | grep -qE 'manually|github\.com'; then
+  pass "publish-skill prints manual URL when gh is absent (SKILL-02)"
+else
+  fail "publish-skill did not print manual URL with gh absent (SKILL-02)"
+fi
+
+# SKILL-03: dirty skill tree → exit 1
+echo "dirty" >> "$SKILL_DIR/.claude/skills/test-skill/SKILL.md"
+DIRTY_RC=0
+skill_run test-skill >/dev/null 2>&1 || DIRTY_RC=$?
+if [ "$DIRTY_RC" -eq 1 ]; then
+  pass "publish-skill exits 1 on dirty skill tree (SKILL-03)"
+else
+  fail "publish-skill did not exit 1 on dirty skill tree — got rc=$DIRTY_RC (SKILL-03)"
+fi
+DIRTY_MSG="$(skill_run test-skill 2>&1 || true)"
+if printf '%s\n' "$DIRTY_MSG" | grep -q 'uncommitted'; then
+  pass "publish-skill prints 'uncommitted' message on dirty tree (SKILL-03)"
+else
+  fail "publish-skill dirty-tree message missing 'uncommitted' (SKILL-03)"
+fi
+git -C "$SKILL_DIR" checkout -- .claude/skills/test-skill/SKILL.md
+
+# SKILL-03: untagged conjure HEAD → exit 1
+UNTAGGED_DIR="$(mktemp -d)"
+git -C "$UNTAGGED_DIR" init -q
+git -C "$UNTAGGED_DIR" config user.email "test@conjure"
+git -C "$UNTAGGED_DIR" config user.name "conjure-test"
+mkdir -p "$UNTAGGED_DIR/scripts" "$UNTAGGED_DIR/lib"
+cp "$CONJURE_HOME/scripts/publish-skill.sh" "$UNTAGGED_DIR/scripts/"
+cp "$CONJURE_HOME/lib/mutate.sh"            "$UNTAGGED_DIR/lib/"
+cp "$CONJURE_HOME/VERSION"                  "$UNTAGGED_DIR/VERSION"
+git -C "$UNTAGGED_DIR" add -A
+git -C "$UNTAGGED_DIR" commit -q -m "no tag"
+# Intentionally no git tag — this is the untagged conjure scenario
+UNTAGGED_RC=0
+( cd "$SKILL_DIR" && bash "$UNTAGGED_DIR/scripts/publish-skill.sh" test-skill >/dev/null 2>&1 ) || UNTAGGED_RC=$?
+UNTAGGED_MSG="$( ( cd "$SKILL_DIR" && bash "$UNTAGGED_DIR/scripts/publish-skill.sh" test-skill ) 2>&1 || true )"
+if [ "$UNTAGGED_RC" -eq 1 ]; then
+  pass "publish-skill exits 1 when conjure HEAD is untagged (SKILL-03)"
+else
+  fail "publish-skill did not exit 1 on untagged conjure HEAD — got rc=$UNTAGGED_RC (SKILL-03)"
+fi
+if printf '%s\n' "$UNTAGGED_MSG" | grep -q 'tagged release'; then
+  pass "publish-skill prints 'tagged release' message on untagged HEAD (SKILL-03)"
+else
+  fail "publish-skill untagged-head message missing 'tagged release' (SKILL-03)"
+fi
+rm -rf "$UNTAGGED_DIR"
+
+# SKILL-04: --to flag substitutes target repo in PR instructions
+TO_OUT="$(skill_run test-skill --to myorg/myrepo 2>&1)"
+if printf '%s\n' "$TO_OUT" | grep -q 'myorg/myrepo'; then
+  pass "--to flag substitutes target repo in PR instructions (SKILL-04)"
+else
+  fail "--to flag did not substitute target repo (SKILL-04)"
+fi
+
+# CLEANUP SKILL sandbox
+rm -rf "$SKILL_DIR"
+
 # Summary
 echo
 echo "═══════════════════════════════════════════════════════════════════"
