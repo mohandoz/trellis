@@ -129,6 +129,21 @@ if [ -d .claude ]; then
   fi
 fi
 
+# Conflict markers — detect unresolved 3-way merge conflicts (MERGE-05)
+if [ -d .claude ]; then
+  CONFLICT_FILES="$(grep -rl '^<<<<<<<' .claude/ 2>/dev/null \
+    | grep -v '\.conjure-conflict-' || true)"
+  if [ -n "$CONFLICT_FILES" ]; then
+    err "Unresolved merge conflicts found in .claude/ — resolve and delete .conjure-conflict-* sidecars"
+    printf '%s\n' "$CONFLICT_FILES" | while IFS= read -r cf; do
+      [ -z "$cf" ] && continue
+      note "  conflict markers: $cf"
+    done
+  else
+    ok ".claude/: no unresolved conflict markers"
+  fi
+fi
+
 # Summary
 echo
 echo "─────────────────────────────────────"
