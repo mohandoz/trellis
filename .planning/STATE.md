@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v0.4.0
 milestone_name: Distribution + Ecosystem
 status: executing
-last_updated: "2026-05-25T21:54:03.688Z"
-last_activity: 2026-05-25 -- Phase 12 planning complete
+last_updated: "2026-05-25T21:56:17.605Z"
+last_activity: 2026-05-25 -- Phase 12 execution started
 progress:
   total_phases: 8
   completed_phases: 4
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-25)
 
 **Core value:** A developer can turn any repo into a production-grade, eval-backed Claude Code harness with one trustworthy command — and keep it healthy over time.
-**Current focus:** Phase 11 — skill publishing
+**Current focus:** Phase 12 — org-overlay
 
 ## Current Position
 
-Phase: 11
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-05-25 -- Phase 12 planning complete
+Phase: 12 (org-overlay) — EXECUTING
+Plan: 1 of 3
+Status: Executing Phase 12
+Last activity: 2026-05-25 -- Phase 12 execution started
 
 Progress: [██████████] 100%
 
