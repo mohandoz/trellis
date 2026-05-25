@@ -45,7 +45,7 @@ and verify a correct, safe harness.
 - [ ] `conjure init --dry-run` enforced everywhere (no mutations on dry run)
 - [ ] Skill-firing telemetry: hook records which skills load per session → retire-list signal
 - [ ] Cost estimator: `conjure audit --cost` predicts session token cost from harness size
-- [ ] Pre-flight dependency verification with one-command install fix-its
+- [x] Pre-flight dependency verification with one-command install fix-its — Validated in Phase 01 (SAFE-04)
 - [ ] Failure-mode reproductions encoded as tests
 - [ ] Formal GSD `.planning/` for Conjure's own continued development (this bootstrap)
 
@@ -64,7 +64,7 @@ and verify a correct, safe harness.
 - **Existing mature codebase.** Bash CLI (`cli/conjure`), shell scripts under `scripts/`, profiles, compliance overlays, templates, migrations, and a 112-test suite already exist. Current version: 0.2.1.
 - **Self-hosting dev model.** Conjure is developed GSD-style; an informal `planning/ROADMAP.md` (no dot) and `planning/GSD-INTEGRATION.md` already exist. This task formalizes the real GSD `.planning/` structure (with dot) for ongoing work.
 - **Eval-backed design philosophy.** Caps and patterns derive from Anthropic eval data, a 2,455-eval community study, and ETH Zurich context-size research. Core principle: less context = better adherence.
-- **Cross-platform target.** bash hooks for POSIX, Node.js `.mjs` hooks for native Windows.
+- **Cross-platform target.** Node.js `.mjs` hooks on all platforms (Windows, macOS, Linux) — bash hooks retired in Phase 01 (SAFE-03).
 - **Community/OSS goal.** MIT-licensed; aims for production teams adopting it and GitHub stars. Adoption depends first on trust (tests, audit, safety), then reach (distribution).
 
 ## Constraints
@@ -101,4 +101,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-24 after initialization*
+*Last updated: 2026-05-24 after Phase 01 completion*
