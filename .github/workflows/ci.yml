@@ -38,6 +38,22 @@ jobs:
           [ "$rc" -eq 0 ] && echo "OK: all version fields match $ver"
           exit "$rc"
 
+      - name: Install claude CLI
+        run: |
+          sudo install -d -m 0755 /etc/apt/keyrings
+          sudo curl -fsSL https://downloads.claude.ai/keys/claude-code.asc \
+            -o /etc/apt/keyrings/claude-code.asc
+          echo "deb [signed-by=/etc/apt/keyrings/claude-code.asc] https://downloads.claude.ai/claude-code/apt/stable stable main" \
+            | sudo tee /etc/apt/sources.list.d/claude-code.list
+          sudo apt-get update -qq
+          sudo apt-get install -y claude-code
+          claude --version
+
+      - name: Validate plugin manifests
+        run: |
+          claude plugin validate .
+          claude plugin validate .claude-plugin/plugin.json
+
       - name: Run kit test suite
         run: bash tests/run.sh
 
