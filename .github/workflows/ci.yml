@@ -27,6 +27,17 @@ jobs:
           find templates .claude-plugin -name '*.json' \
             -exec jq empty {} \;
 
+      - name: Check version consistency
+        run: |
+          ver=$(cat VERSION)
+          mkt_ver=$(jq -r '.plugins[0].version // empty' .claude-plugin/marketplace.json)
+          plg_ver=$(jq -r '.version // empty' .claude-plugin/plugin.json)
+          rc=0
+          [ "$mkt_ver" = "$ver" ] || { echo "FAIL: marketplace.json .plugins[0].version ($mkt_ver) != VERSION ($ver)"; rc=1; }
+          [ "$plg_ver"  = "$ver" ] || { echo "FAIL: plugin.json .version ($plg_ver) != VERSION ($ver)"; rc=1; }
+          [ "$rc" -eq 0 ] && echo "OK: all version fields match $ver"
+          exit "$rc"
+
       - name: Run kit test suite
         run: bash tests/run.sh
 
