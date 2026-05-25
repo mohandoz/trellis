@@ -42,8 +42,13 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 2 plans
 
 Plans:
+**Wave 1**
 - [ ] 01-01-PLAN.md — Extract scripts/preflight.sh, wire conjure preflight subcommand, add preflight test section (SAFE-04)
+
+**Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 01-02-PLAN.md — Update settings.json.tmpl + init-project.sh + audit-setup.sh for node .mjs hook wiring, add template lint assertions (SAFE-03)
+
+Cross-cutting constraints: scripts/preflight.sh must be POSIX bash 3.2+ (no bash 4+ features); backup-before-mutate on all template edits
 
 ### Phase 2: Dry-Run Enforcement Chokepoint
 **Goal**: `conjure init --dry-run` produces an identical console plan while making zero filesystem mutations, enforced at one chokepoint rather than per call site

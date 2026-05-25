@@ -524,7 +524,7 @@ fi
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Should pre-commit-quality-gate.mjs be wired by default?**
    - What we know: It exists in `templates/hooks-nodejs/`. The bash version is not in `settings.json.tmpl`. The mjs version internally guards itself with `if (!/^git\s+commit/.test(cmd)) process.exit(0)`.
