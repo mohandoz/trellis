@@ -145,7 +145,11 @@ Plans:
   3. The Homebrew formula references a tagged tarball URL + SHA256 (never a branch HEAD reference)
   4. Publishing a new GitHub release automatically triggers `mislav/bump-homebrew-formula-action@v3` to update SHA256 in the `mohandoz/homebrew-conjure` tap repo
 
-**Plans**: TBD
+**Plans**: 3 plans
+
+- [ ] 13-01-PLAN.md — Formula/conjure.rb + cli/conjure CONJURE_HOME conditional (Wave 1)
+- [ ] 13-02-PLAN.md — release.yml bump-homebrew-formula-action step (Wave 2)
+- [ ] 13-03-PLAN.md — BREW test block in tests/run.sh + 13-VALIDATION.md (Wave 3)
 
 ### Phase 14: Docker + Windows CI
 

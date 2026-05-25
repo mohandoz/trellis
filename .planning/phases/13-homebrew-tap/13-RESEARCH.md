@@ -602,22 +602,16 @@ fi
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **SHA256 placeholder in `Formula/conjure.rb`**
-   - What we know: The formula must have a real SHA256 for `brew install` to work. The bump action updates it on release. The initial commit to the tap repo needs either a placeholder or the real hash for v0.3.0.
-   - What's unclear: Will the planner compute the real SHA256 for v0.3.0 at task time, or use a placeholder that gets replaced on first release?
-   - Recommendation: Use `"PLACEHOLDER_SHA256_REPLACE_ON_FIRST_RELEASE"` in `Formula/conjure.rb` committed to this repo. The tap repo bootstrap task should compute the real hash: `curl -L https://github.com/mohandoz/conjure/archive/refs/tags/v0.3.0.tar.gz | shasum -a 256`.
+1. **SHA256 placeholder in `Formula/conjure.rb`** (RESOLVED)
+   - Resolution: Use `"PLACEHOLDER_SHA256_REPLACE_ON_FIRST_RELEASE"` in `Formula/conjure.rb` committed to this repo. The bump action updates the tap repo copy on first real release. Baked into Plan 13-01 Task 1.
 
-2. **Tap repo creation step**
-   - What we know: `mohandoz/homebrew-conjure` must exist before the bump action can push to it.
-   - What's unclear: Is repo creation a manual step (documented in VALIDATION.md) or a task in the plan?
-   - Recommendation: Include as a Wave 0 or Wave 1 task with manual instructions; it is a one-time GitHub UI action.
+2. **Tap repo creation step** (RESOLVED)
+   - Resolution: Manual step documented in Plan 13-03 `user_setup` block and 13-VALIDATION.md Pre-release Checklist. One-time GitHub UI action; not automatable.
 
-3. **`Formula/conjure.rb` version hardcoded vs templated**
-   - What we know: The formula in this repo has a hardcoded version (0.3.0). The bump action updates the tap repo copy but not the copy in this repo.
-   - What's unclear: Should the copy in this repo track the current version (requires a commit on each release)?
-   - Recommendation: The formula in `Formula/conjure.rb` in this repo is a template. It does not need to stay in sync with every release — the tap repo copy is what matters. Document this clearly in comments.
+3. **`Formula/conjure.rb` version hardcoded vs templated** (RESOLVED)
+   - Resolution: Formula in `Formula/conjure.rb` in this repo is a template with a placeholder SHA256. Tap repo copy (`mohandoz/homebrew-conjure`) is the live copy updated by the bump action. The copies deliberately diverge after first release. Documented in formula header comment.
 
 ---
 
