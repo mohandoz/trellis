@@ -13,7 +13,7 @@ Make Conjure installable and shareable through every standard channel while clea
 ## Phases
 
 - [x] **Phase 08: Nyquist Compliance Backfill** - Write VALIDATION.md for phases 01, 02, 04, 05, 06, 07 (completed 2026-05-25)
-- [ ] **Phase 09: 3-Way Merge** - Implement `cmd_update --apply` via `lib/merge.sh` + base snapshot
+- [x] **Phase 09: 3-Way Merge** - Implement `cmd_update --apply` via `lib/merge.sh` + base snapshot (completed 2026-05-25)
 - [ ] **Phase 10: Marketplace Publish** - Wire and validate the Claude Code Marketplace plugin manifest
 - [ ] **Phase 11: Skill Publishing** - Add `conjure publish-skill` command with egress scan + PR flow
 - [ ] **Phase 12: Org Overlay** - Implement `conjure init --overlay` + `conjure refresh-overlay` system
@@ -53,7 +53,7 @@ Plans:
 Plans:
 - [x] 09-01-PLAN.md — Create lib/merge.sh (merge_file_3way, write_merge_sidecar, merge_user_files) + add lib/ to CI shellcheck glob (MERGE-01, MERGE-03)
 - [x] 09-02-PLAN.md — Modify cli/conjure: cmd_init snapshot write + cmd_update --apply real merge (MERGE-01, MERGE-02, MERGE-03, MERGE-04)
-- [ ] 09-03-PLAN.md — Add MERGE-05 audit conflict-marker check + MERGE-01/02/03/04 regression tests (MERGE-01, MERGE-02, MERGE-03, MERGE-04, MERGE-05)
+- [x] 09-03-PLAN.md — Add MERGE-05 audit conflict-marker check + MERGE-01/02/03/04 regression tests (MERGE-01, MERGE-02, MERGE-03, MERGE-04, MERGE-05)
 
 ### Phase 10: Marketplace Publish
 **Goal**: The Conjure plugin manifest is valid, version-consistent, and a developer can run `conjure publish` to update and submit it to the community catalog
@@ -126,7 +126,7 @@ Plans:
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 08. Nyquist Compliance Backfill | v0.4.0 | 3/3 | Complete    | 2026-05-25 |
-| 09. 3-Way Merge | v0.4.0 | 2/3 | In Progress|  |
+| 09. 3-Way Merge | v0.4.0 | 3/3 | Complete   | 2026-05-25 |
 | 10. Marketplace Publish | v0.4.0 | 0/TBD | Not started | - |
 | 11. Skill Publishing | v0.4.0 | 0/TBD | Not started | - |
 | 12. Org Overlay | v0.4.0 | 0/TBD | Not started | - |
