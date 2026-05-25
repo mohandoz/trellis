@@ -87,10 +87,17 @@ Plans:
   2. Fixtures run with an isolated `HOME`/`XDG_CONFIG_HOME`/`CLAUDE_CONFIG_DIR`/`PATH` copied to a temp dir, with no reads from or writes to the developer's real `$HOME`
   3. At least one fixture intentionally fails audit, and assertions check the specific findings (not merely a non-zero exit)
   4. Fixture audits are offline and deterministic (no `graphify`/git/network), so the audit signature is reproducible
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 03-01: TBD
+**Wave 1** *(foundation — no dependencies)*
+- [ ] 03-01-PLAN.md — Create tests/lib/sandbox.sh (sourced isolation helper) and scripts/regen-fixtures.sh (fixture generator) (TEST-02)
+
+**Wave 2** *(blocked on 03-01)*
+- [ ] 03-02-PLAN.md — Run regen-fixtures.sh to generate and commit all 9 green profile fixtures; verify each audits exit 0 (TEST-01)
+
+**Wave 3** *(blocked on 03-01 and 03-02)*
+- [ ] 03-03-PLAN.md — Create tests/fixtures/_broken/ (201+ line CLAUDE.md + EXPECT) and extend tests/run.sh with sandboxed fixture audit sections (TEST-01, TEST-02, TEST-04)
 
 ### Phase 4: Regression Suite & Dry-Run Proof
 **Goal**: A one-command, CI-gated regression suite verifies every fixture against golden files, proves dry-run leaves the tree byte-identical, encodes documented failure modes as tests, and validates Windows hook wiring
@@ -164,7 +171,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 |-------|----------------|--------|-----------|
 | 1. Pre-flight & Cross-Platform Hooks | 2/2 | Complete    | 2026-05-24 |
 | 2. Dry-Run Enforcement Chokepoint | 6/6 | Complete    | 2026-05-24 |
-| 3. Sandboxed Per-Profile Fixtures | 0/TBD | Not started | - |
+| 3. Sandboxed Per-Profile Fixtures | 0/3 | Not started | - |
 | 4. Regression Suite & Dry-Run Proof | 0/TBD | Not started | - |
 | 5. README Demo | 0/TBD | Not started | - |
 | 6. Cost Estimator | 0/TBD | Not started | - |
