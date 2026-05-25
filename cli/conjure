@@ -90,9 +90,17 @@ cmd_init() {
   local snap_dir="$target/.claude/.conjure-templates-${CONJURE_VERSION}"
   mutate_mkdir "$snap_dir"
   mutate_cp "$CONJURE_HOME/templates/CLAUDE.md.tmpl" "$snap_dir/CLAUDE.md.tmpl"
-  mutate_cp "$CONJURE_HOME/templates/skills"          "$snap_dir/skills"
-  mutate_cp "$CONJURE_HOME/templates/agents"          "$snap_dir/agents"
-  mutate_cp "$CONJURE_HOME/templates/hooks-nodejs"    "$snap_dir/hooks"
+  # Guard against cp -r double-nesting: when dest already exists, cp -r copies src INTO dest
+  # producing e.g. skills/skills/. Only copy when the subdirectory does not yet exist.
+  if [ ! -d "$snap_dir/skills" ]; then
+    mutate_cp "$CONJURE_HOME/templates/skills"       "$snap_dir/skills"
+  fi
+  if [ ! -d "$snap_dir/agents" ]; then
+    mutate_cp "$CONJURE_HOME/templates/agents"       "$snap_dir/agents"
+  fi
+  if [ ! -d "$snap_dir/hooks" ]; then
+    mutate_cp "$CONJURE_HOME/templates/hooks-nodejs" "$snap_dir/hooks"
+  fi
   echo "▸ Snapshot written: $snap_dir"
 
   mutate_summary
