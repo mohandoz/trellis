@@ -61,6 +61,8 @@ cmd_init() {
     esac
     shift
   done
+  DRY_RUN="$dryrun"
+  source "$CONJURE_HOME/lib/mutate.sh"
 
   echo "▸ conjure init: mode=$mode profile=${profile:-none} target=$target dry_run=$dryrun"
 
@@ -72,16 +74,17 @@ cmd_init() {
     return $?
   fi
 
-  bash "$CONJURE_HOME/scripts/init-project.sh" "$mode" "$target"
+  CONJURE_HOME="$CONJURE_HOME" DRY_RUN="$dryrun" bash "$CONJURE_HOME/scripts/init-project.sh" "$mode" "$target"
 
   # Apply stack profile overlay if specified
   if [ -n "$profile" ] && [ -d "$CONJURE_HOME/profiles/$profile" ]; then
     echo "▸ Applying profile: $profile"
-    bash "$CONJURE_HOME/profiles/$profile/apply.sh" "$target" "$dryrun"
+    CONJURE_HOME="$CONJURE_HOME" DRY_RUN="$dryrun" bash "$CONJURE_HOME/profiles/$profile/apply.sh" "$target"
   fi
 
   # Stamp version
-  echo "$CONJURE_VERSION" > "$target/.claude/.conjure-version"
+  mutate_write "$target/.claude/.conjure-version" "$CONJURE_VERSION"
+  mutate_summary
   echo "▸ Pinned conjure version: $CONJURE_VERSION"
 }
 
