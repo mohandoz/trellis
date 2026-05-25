@@ -40,7 +40,7 @@ and verify a correct, safe harness.
 
 <!-- Current milestone: v0.4.0 — Distribution + Ecosystem. Hypotheses until shipped + validated. -->
 
-- [ ] DIST-01: Publish to Claude Code Marketplace via `.claude-plugin/marketplace.json`
+- [x] DIST-01: Publish to Claude Code Marketplace via `.claude-plugin/marketplace.json` — Validated Phase 10
 - [ ] DIST-02: Homebrew formula (`brew install conjure`)
 - [ ] DIST-03: Docker image with all tools preinstalled
 - [ ] DIST-04: `conjure publish-skill <name>` — contribute project skill to public kit
@@ -105,7 +105,7 @@ and verify a correct, safe harness.
 
 **Phase 09 complete:** `cmd_update --apply` 3-way merge — `lib/merge.sh` (merge_file_3way, write_merge_sidecar, merge_user_files), snapshot write on init, conflict sidecars, MERGE-05 audit detection, 216 tests green — TECH-01 validated (2026-05-25)
 
-**Next milestone:** v0.4.0 — Distribution + Ecosystem (Phase 10 next: marketplace-publish)
+**Next milestone:** v0.4.0 — Distribution + Ecosystem (Phase 11 next: skill-publishing)
 
 ## Key Decisions
 
@@ -136,4 +136,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-25 — Phase 09 complete, TECH-01 validated*
+*Last updated: 2026-05-25 — Phase 10 complete, DIST-01 validated*
