@@ -104,4 +104,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-24 after Phase 02 completion*
+*Last updated: 2026-05-25 after Phase 05 completion — README demo GIF shipped*
