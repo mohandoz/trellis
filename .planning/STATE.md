@@ -2,15 +2,16 @@
 gsd_state_version: 1.0
 milestone: v0.4.0
 milestone_name: Distribution + Ecosystem
-status: executing
-last_updated: "2026-05-25T19:33:17.940Z"
+status: ready_to_plan
+last_updated: 2026-05-25T19:51:31.906Z
 last_activity: 2026-05-25
 progress:
   total_phases: 8
   completed_phases: 3
   total_plans: 10
-  completed_plans: 10
+  completed_plans: 32
   percent: 38
+stopped_at: Phase 10 complete (4/4) — ready to discuss Phase 11
 ---
 
 # Project State
@@ -20,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-25)
 
 **Core value:** A developer can turn any repo into a production-grade, eval-backed Claude Code harness with one trustworthy command — and keep it healthy over time.
-**Current focus:** Phase 10 — marketplace-publish
+**Current focus:** Phase 11 — skill publishing
 
 ## Current Position
 
-Phase: 10 (marketplace-publish) — EXECUTING
-Plan: 4 of 4
-Status: Ready to execute
+Phase: 11
+Plan: Not started
+Status: Ready to plan
 Last activity: 2026-05-25
 
 Progress: [██████████] 100%
@@ -35,7 +36,7 @@ Progress: [██████████] 100%
 
 **Velocity:**
 
-- Total plans completed: 28 (from v0.3.0)
+- Total plans completed: 32 (from v0.3.0)
 - Average duration: — min
 - Total execution time: —
 
@@ -47,6 +48,7 @@ Progress: [██████████] 100%
 | v0.4.0 phases 08–15 | TBD | - | - |
 | 08 | 3 | - | - |
 | 09 | 3 | - | - |
+| 10 | 4 | - | - |
 
 **Recent Trend:**
 
