@@ -2,16 +2,15 @@
 gsd_state_version: 1.0
 milestone: v0.4.0
 milestone_name: Distribution + Ecosystem
-status: ready_to_plan
-last_updated: 2026-05-25T19:51:31.906Z
+status: planning
+last_updated: "2026-05-25T20:09:09.983Z"
 last_activity: 2026-05-25
 progress:
   total_phases: 8
   completed_phases: 3
   total_plans: 10
-  completed_plans: 32
+  completed_plans: 10
   percent: 38
-stopped_at: Phase 10 complete (4/4) — ready to discuss Phase 11
 ---
 
 # Project State
@@ -91,6 +90,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-05-25T19:33:17.935Z
-Stopped at: Completed 10-04-PLAN.md — MKTPL regression tests
-Resume file: None
+Last session: 2026-05-25T20:09:09.978Z
+Stopped at: Phase 11 context gathered
+Resume file: .planning/phases/11-skill-publishing/11-CONTEXT.md
