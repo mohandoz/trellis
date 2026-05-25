@@ -17,11 +17,11 @@
 
 ### 3-Way Merge — `cmd_update --apply` (TECH-01)
 
-- [ ] **MERGE-01**: User can run `conjure update --apply` and have changed template files merged into their project using `git merge-file --diff3` (replaces stub at `cli/conjure:174`)
-- [ ] **MERGE-02**: `conjure init` writes a `.claude/.conjure-templates-<version>/` base snapshot so the merge ancestor is always available for future `conjure update --apply` runs
-- [ ] **MERGE-03**: On merge conflict, `conjure update --apply` writes the conflicted content to a `.conjure-conflict-<filename>` sidecar and leaves the original file untouched
-- [ ] **MERGE-04**: Generated files (`.conjure-version`, `settings.json`) always accept upstream unconditionally; only user-owned files (`CLAUDE.md`, skills, agents) go through 3-way merge
-- [ ] **MERGE-05**: `conjure audit` detects `^<<<<<<<` conflict markers in any harness file and exits non-zero with a specific error message
+- [x] **MERGE-01**: User can run `conjure update --apply` and have changed template files merged into their project using `git merge-file --diff3` (replaces stub at `cli/conjure:174`)
+- [x] **MERGE-02**: `conjure init` writes a `.claude/.conjure-templates-<version>/` base snapshot so the merge ancestor is always available for future `conjure update --apply` runs
+- [x] **MERGE-03**: On merge conflict, `conjure update --apply` writes the conflicted content to a `.conjure-conflict-<filename>` sidecar and leaves the original file untouched
+- [x] **MERGE-04**: Generated files (`.conjure-version`, `settings.json`) always accept upstream unconditionally; only user-owned files (`CLAUDE.md`, skills, agents) go through 3-way merge
+- [x] **MERGE-05**: `conjure audit` detects `^<<<<<<<` conflict markers in any harness file and exits non-zero with a specific error message
 
 ### Skill Publishing (DIST-04)
 
