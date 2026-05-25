@@ -21,7 +21,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Pre-flight & Cross-Platform Hooks** - Extract reusable pre-flight with OS-aware fix-its and make generated hook wiring run on native Windows (completed 2026-05-24)
 - [x] **Phase 2: Dry-Run Enforcement Chokepoint** - Route every write through `lib/mutate.sh` so `--dry-run` mutates nothing, everywhere (completed 2026-05-24)
-- [ ] **Phase 3: Sandboxed Per-Profile Fixtures** - Committed, hermetic example project per stack profile plus one intentionally-failing fixture
+- [x] **Phase 3: Sandboxed Per-Profile Fixtures** - Committed, hermetic example project per stack profile plus one intentionally-failing fixture (completed 2026-05-24)
 - [ ] **Phase 4: Regression Suite & Dry-Run Proof** - Golden-file fixture loop, byte-identical dry-run snapshot assertion, failure-mode reproductions, and a Windows CI leg
 - [ ] **Phase 5: README Demo** - asciinema→GIF demo of `conjure init` + `conjure audit` recorded against safe dry-run
 - [ ] **Phase 6: Cost Estimator** - `conjure audit --cost` offline token/dollar estimate with an explicit ±band, plus opt-in `--exact`
@@ -97,7 +97,7 @@ Plans:
 - [x] 03-02-PLAN.md — Run regen-fixtures.sh to generate and commit all 9 green profile fixtures; verify each audits exit 0 (TEST-01)
 
 **Wave 3** *(blocked on 03-01 and 03-02)*
-- [ ] 03-03-PLAN.md — Create tests/fixtures/_broken/ (201+ line CLAUDE.md + EXPECT) and extend tests/run.sh with sandboxed fixture audit sections (TEST-01, TEST-02, TEST-04)
+- [x] 03-03-PLAN.md — Create tests/fixtures/_broken/ (201+ line CLAUDE.md + EXPECT) and extend tests/run.sh with sandboxed fixture audit sections (TEST-01, TEST-02, TEST-04)
 
 ### Phase 4: Regression Suite & Dry-Run Proof
 **Goal**: A one-command, CI-gated regression suite verifies every fixture against golden files, proves dry-run leaves the tree byte-identical, encodes documented failure modes as tests, and validates Windows hook wiring
@@ -171,7 +171,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 |-------|----------------|--------|-----------|
 | 1. Pre-flight & Cross-Platform Hooks | 2/2 | Complete    | 2026-05-24 |
 | 2. Dry-Run Enforcement Chokepoint | 6/6 | Complete    | 2026-05-24 |
-| 3. Sandboxed Per-Profile Fixtures | 2/3 | In Progress|  |
+| 3. Sandboxed Per-Profile Fixtures | 3/3 | Complete   | 2026-05-24 |
 | 4. Regression Suite & Dry-Run Proof | 0/TBD | Not started | - |
 | 5. README Demo | 0/TBD | Not started | - |
 | 6. Cost Estimator | 0/TBD | Not started | - |
