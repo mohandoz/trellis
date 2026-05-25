@@ -833,17 +833,17 @@ No new authentication, secrets handling, or network calls introduced. The only n
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Should `cmd_update --apply` also diff-check non-installed skills?**
+1. **Should `cmd_update --apply` also diff-check non-installed skills?** (RESOLVED)
    - What we know: The existing `--check` loop only checks skills that exist in both template and project. Files not installed (e.g., user deleted a skill) are skipped.
    - What's unclear: Should `--apply` re-install deleted skills, warn about them, or silently skip?
-   - Recommendation: Silently skip (if `[ -f "$current" ] || continue`) — consistent with `--check` behavior and scope of this phase.
+   - Resolution: Silently skip if not installed in project (if `[ -f "$current" ] || continue`) — consistent with `--check` behavior and scope of this phase.
 
-2. **When should `.conjure-version` be updated on partial conflict?**
+2. **When should `.conjure-version` be updated on partial conflict?** (RESOLVED)
    - What we know: D-06 says exit 1 on conflicts. CONTEXT.md "Claude's Discretion" leaves this open.
    - What's unclear: If 5 files merge clean and 1 conflicts, do we stamp the new version?
-   - Recommendation: Do NOT update `.conjure-version` if any conflicts remain — the version stamp signals "fully up to date." Stamp only on zero conflicts.
+   - Resolution: Stamp only on zero conflicts. The version stamp signals "fully up to date" — do not update `.conjure-version` if any conflicts remain.
 
 ---
 
