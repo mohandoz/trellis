@@ -45,7 +45,7 @@ and verify a correct, safe harness.
 - [ ] DIST-03: Docker image with all tools preinstalled
 - [ ] DIST-04: `conjure publish-skill <name>` — contribute project skill to public kit
 - [ ] DIST-05: Org overlay system (base kit + private overlay repo per org)
-- [ ] TECH-01: `cmd_update --apply` 3-way merge implementation (stub at `cli/conjure:171`)
+- [x] TECH-01: `cmd_update --apply` 3-way merge implementation — Validated Phase 09
 - [x] TECH-02: Nyquist compliance pass for phases 01, 02, 04, 05, 06, 07 — Validated Phase 08
 - [ ] TECH-03: Windows CI runtime confirmation for TEST-06
 
@@ -103,7 +103,9 @@ and verify a correct, safe harness.
 
 **Phase 08 complete:** VALIDATION.md added for all 6 phases (01, 02, 04, 05, 06, 07) — Nyquist compliance backfill done, TECH-02 validated (2026-05-25)
 
-**Next milestone:** v0.4.0 — Distribution + Ecosystem (Phase 09 next: 3-way merge)
+**Phase 09 complete:** `cmd_update --apply` 3-way merge — `lib/merge.sh` (merge_file_3way, write_merge_sidecar, merge_user_files), snapshot write on init, conflict sidecars, MERGE-05 audit detection, 216 tests green — TECH-01 validated (2026-05-25)
+
+**Next milestone:** v0.4.0 — Distribution + Ecosystem (Phase 10 next: marketplace-publish)
 
 ## Key Decisions
 
@@ -134,4 +136,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-25 — Phase 08 complete, TECH-02 validated*
+*Last updated: 2026-05-25 — Phase 09 complete, TECH-01 validated*
