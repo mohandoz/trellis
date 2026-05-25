@@ -150,7 +150,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Pre-flight & Cross-Platform Hooks | 2/2 | Complete   | 2026-05-24 |
+| 1. Pre-flight & Cross-Platform Hooks | 2/2 | Complete    | 2026-05-24 |
 | 2. Dry-Run Enforcement Chokepoint | 0/TBD | Not started | - |
 | 3. Sandboxed Per-Profile Fixtures | 0/TBD | Not started | - |
 | 4. Regression Suite & Dry-Run Proof | 0/TBD | Not started | - |
