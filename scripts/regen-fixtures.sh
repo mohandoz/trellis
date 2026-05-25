@@ -68,7 +68,7 @@ _write_seed_claude() {
   printf '\n' >> "$seed/CLAUDE.md"
   printf '### Constraints\n' >> "$seed/CLAUDE.md"
   printf '\n' >> "$seed/CLAUDE.md"
-  printf '- POSIX bash + Node.js .mjs hooks.\n' >> "$seed/CLAUDE.md"
+  printf '%s\n' '- POSIX bash + Node.js .mjs hooks.' >> "$seed/CLAUDE.md"
   printf '\n' >> "$seed/CLAUDE.md"
   printf '## Technology Stack\n' >> "$seed/CLAUDE.md"
   printf '\n' >> "$seed/CLAUDE.md"
