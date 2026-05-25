@@ -114,8 +114,8 @@ Plans:
 
 Plans:
 **Wave 1** *(parallel — no dependencies between them)*
-- [ ] 04-01-PLAN.md — Create 9 green-fixture EXPECT files, add golden-file EXPECT loop to tests/run.sh, extend scripts/regen-fixtures.sh with _write_expect (TEST-03)
-- [ ] 04-02-PLAN.md — Add windows-hook-wiring job to .github/workflows/ci.yml: scaffold fixture on windows-latest, assert node wiring in settings.json (TEST-06)
+- [x] 04-01-PLAN.md — Create 9 green-fixture EXPECT files, add golden-file EXPECT loop to tests/run.sh, extend scripts/regen-fixtures.sh with _write_expect (TEST-03)
+- [x] 04-02-PLAN.md — Add windows-hook-wiring job to .github/workflows/ci.yml: scaffold fixture on windows-latest, assert node wiring in settings.json (TEST-06)
 
 **Wave 2** *(blocked on 04-01 — both add sections to tests/run.sh)*
 - [ ] 04-03-PLAN.md — Add dry-run byte-identical snapshot section and failure-mode reproductions section to tests/run.sh (TEST-05, TEST-07)
@@ -177,7 +177,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 | 1. Pre-flight & Cross-Platform Hooks | 2/2 | Complete    | 2026-05-24 |
 | 2. Dry-Run Enforcement Chokepoint | 6/6 | Complete    | 2026-05-24 |
 | 3. Sandboxed Per-Profile Fixtures | 3/3 | Complete    | 2026-05-24 |
-| 4. Regression Suite & Dry-Run Proof | 0/3 | Not started | - |
+| 4. Regression Suite & Dry-Run Proof | 2/3 | In Progress|  |
 | 5. README Demo | 0/TBD | Not started | - |
 | 6. Cost Estimator | 0/TBD | Not started | - |
 | 7. Skill-Firing Telemetry | 0/TBD | Not started | - |
