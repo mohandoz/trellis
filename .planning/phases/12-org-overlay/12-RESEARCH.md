@@ -500,7 +500,7 @@ refresh-overlay)  shift; cmd_refresh_overlay "$@"  ;;
 
 **If this table is empty:** Not empty — three low-risk assumptions noted above.
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Should `conjure init --overlay` print a per-file applied summary?**
    - What we know: `mutate_summary` reports total mutation count; other worker scripts print `echo "  ✓ created $f"` per file
