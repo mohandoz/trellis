@@ -49,8 +49,6 @@ jobs:
         run: |
           # Fresh fixture has no CLAUDE.md yet (Claude writes it after init).
           # Accept rc=0 (pass), 1 (warnings), 2 (CLAUDE.md missing on fresh fixture is expected).
-          bash "$GITHUB_WORKSPACE/scripts/audit-setup.sh" /tmp/fixture || true
-          # Verify the script ran without crashing — that's the real CI check.
           bash "$GITHUB_WORKSPACE/scripts/audit-setup.sh" /tmp/fixture > /tmp/audit.log 2>&1 || true
           grep -q "PASS:" /tmp/audit.log
 
