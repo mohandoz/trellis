@@ -1,0 +1,153 @@
+# Roadmap: Conjure — v0.3.0 "Testing + Telemetry"
+
+## Overview
+
+v0.3.0 closes the gap between what Conjure *claims* and what it *verifiably does*.
+The journey is dependency-ordered: first fix the two live bugs that undermine
+trust (`--dry-run` mutates disk; Windows hook wiring is silently dead) and harden
+pre-flight, then build sandboxed per-profile fixtures, then the regression net
+that guards everything — proving dry-run is byte-safe. Once `init` is trustworthy
+and verifiable, record the README demo, ship the offline cost estimator, and land
+the headline differentiator (local-only skill-firing telemetry) last, with the
+most verification. Each phase makes the next safe to build.
+
+## Phases
+
+**Phase Numbering:**
+- Integer phases (1, 2, 3): Planned milestone work
+- Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
+
+Decimal phases appear between their surrounding integers in numeric order.
+
+- [ ] **Phase 1: Pre-flight & Cross-Platform Hooks** - Extract reusable pre-flight with OS-aware fix-its and make generated hook wiring run on native Windows
+- [ ] **Phase 2: Dry-Run Enforcement Chokepoint** - Route every write through `lib/mutate.sh` so `--dry-run` mutates nothing, everywhere
+- [ ] **Phase 3: Sandboxed Per-Profile Fixtures** - Committed, hermetic example project per stack profile plus one intentionally-failing fixture
+- [ ] **Phase 4: Regression Suite & Dry-Run Proof** - Golden-file fixture loop, byte-identical dry-run snapshot assertion, failure-mode reproductions, and a Windows CI leg
+- [ ] **Phase 5: README Demo** - asciinema→GIF demo of `conjure init` + `conjure audit` recorded against safe dry-run
+- [ ] **Phase 6: Cost Estimator** - `conjure audit --cost` offline token/dollar estimate with an explicit ±band, plus opt-in `--exact`
+- [ ] **Phase 7: Skill-Firing Telemetry** - Opt-in, local-only, PII-free skill telemetry feeding a retire-list, with an enforced no-egress test
+
+## Phase Details
+
+### Phase 1: Pre-flight & Cross-Platform Hooks
+**Goal**: Pre-flight dependency verification is reusable and OS-correct, and the harness that `init` generates fires its hooks on every supported platform including native Windows
+**Mode:** mvp
+**Depends on**: Nothing (first phase)
+**Requirements**: SAFE-03, SAFE-04
+**Success Criteria** (what must be TRUE):
+  1. Running `conjure init`/`audit` reports each missing dependency with a copy-pasteable, OS-detected install fix-it (brew/apt/winget/npm) and never auto-installs
+  2. Pre-flight logic lives in a standalone `scripts/preflight.sh` that both the CLI and `tests/run.sh` invoke (no inline duplication)
+  3. A harness scaffolded by `conjure init` wires hooks via a runtime present on the OS (portable `node .mjs` or OS-branched), so hooks fire on native Windows instead of silently no-opping
+  4. Required-dependency-missing blocks with a non-zero exit; optional-dependency-missing warns and continues
+**Plans**: TBD
+
+Plans:
+- [ ] 01-01: TBD
+
+### Phase 2: Dry-Run Enforcement Chokepoint
+**Goal**: `conjure init --dry-run` produces an identical console plan while making zero filesystem mutations, enforced at one chokepoint rather than per call site
+**Mode:** mvp
+**Depends on**: Phase 1
+**Requirements**: SAFE-01, SAFE-02
+**Success Criteria** (what must be TRUE):
+  1. After `conjure init --dry-run .`, the target tree is unchanged — no scaffolded `.claude/`, no profile output, no `.conjure-version` stamp
+  2. All filesystem writes (init, profile/compliance apply, version stamp) route through a single shared `lib/mutate.sh` helper that honors `DRY_RUN`
+  3. A dry-run run prints what it *would* write (the plan) for each intended mutation
+  4. `DRY_RUN` is parsed once in the CLI and threaded into every child script, not re-checked ad hoc at each write
+**Plans**: TBD
+
+Plans:
+- [ ] 02-01: TBD
+
+### Phase 3: Sandboxed Per-Profile Fixtures
+**Goal**: Every stack profile has a committed, audited example project that runs hermetically, plus a deliberately-broken fixture that proves the suite can catch regressions
+**Mode:** mvp
+**Depends on**: Phase 2
+**Requirements**: TEST-01, TEST-02, TEST-04
+**Success Criteria** (what must be TRUE):
+  1. There is one committed example fixture per stack profile under `tests/fixtures/<profile>/`, each auditing green
+  2. Fixtures run with an isolated `HOME`/`XDG_CONFIG_HOME`/`CLAUDE_CONFIG_DIR`/`PATH` copied to a temp dir, with no reads from or writes to the developer's real `$HOME`
+  3. At least one fixture intentionally fails audit, and assertions check the specific findings (not merely a non-zero exit)
+  4. Fixture audits are offline and deterministic (no `graphify`/git/network), so the audit signature is reproducible
+**Plans**: TBD
+
+Plans:
+- [ ] 03-01: TBD
+
+### Phase 4: Regression Suite & Dry-Run Proof
+**Goal**: A one-command, CI-gated regression suite verifies every fixture against golden files, proves dry-run leaves the tree byte-identical, encodes documented failure modes as tests, and validates Windows hook wiring
+**Mode:** mvp
+**Depends on**: Phase 3
+**Requirements**: TEST-03, TEST-05, TEST-06, TEST-07
+**Success Criteria** (what must be TRUE):
+  1. `tests/run.sh` drives per-fixture audit assertions via golden-file (`EXPECT`) comparison of normalized output, failing on drift
+  2. The suite asserts that a `--dry-run` run leaves a fixture tree byte-identical (snapshot invariant)
+  3. CI includes a `windows-latest` leg that validates `.mjs` hook wiring fires
+  4. Each failure mode documented in FAILURE-MODES.md has a reproduction encoded as a test
+  5. Regenerating fixtures (e.g. `update-fixtures`) and diffing prevents silent golden-file rot
+**Plans**: TBD
+
+Plans:
+- [ ] 04-01: TBD
+
+### Phase 5: README Demo
+**Goal**: A new reader sees Conjure work in seconds via a recorded demo of the now-trustworthy `conjure init` + `conjure audit`
+**Mode:** mvp
+**Depends on**: Phase 4
+**Requirements**: DOCS-01
+**Success Criteria** (what must be TRUE):
+  1. The README shows an asciinema→GIF demo of `conjure init` followed by `conjure audit`
+  2. The demo is recorded against a safe dry-run (no real mutation captured), reproducible from a documented command
+  3. The demo reflects current behavior (cross-platform wiring, enforced dry-run) rather than a stale recording
+**Plans**: TBD
+
+Plans:
+- [ ] 05-01: TBD
+
+### Phase 6: Cost Estimator
+**Goal**: `conjure audit --cost` gives an honest, offline-by-default estimate of per-session harness token cost without false precision
+**Mode:** mvp
+**Depends on**: Phase 4
+**Requirements**: COST-01, COST-02, COST-03
+**Success Criteria** (what must be TRUE):
+  1. `conjure audit --cost` estimates per-session token cost from harness size using the chars/4 heuristic and a dated baked price table
+  2. The output is explicitly labeled an estimate, prints a ±band, and names the model plus pricing as-of date (no precise-looking single number)
+  3. The default cost path makes zero network calls; an opt-in `--exact` flag may call Anthropic's `count_tokens` endpoint when credentials exist
+  4. A per-skill breakdown shows which skills cost the most context
+**Plans**: TBD
+**Research**: light — confirm the May-2026 price table ($/Mtok + model + date) and the real-world chars-per-token band against a representative harness; verify the `--exact` SDK call shape
+
+Plans:
+- [ ] 06-01: TBD
+
+### Phase 7: Skill-Firing Telemetry
+**Goal**: Conjure ships local-only, opt-in skill telemetry that produces a retire-list signal while making it provably impossible to phone home — turning "telemetry" into a trust asset
+**Mode:** mvp
+**Depends on**: Phase 6
+**Requirements**: TLMY-01, TLMY-02, TLMY-03, TLMY-04, TLMY-05
+**Success Criteria** (what must be TRUE):
+  1. Skill-firing telemetry is off by default, opt-in, and PII-free; it honors the `DO_NOT_TRACK` convention
+  2. The hook writes an append-only JSONL log the user owns under the *target* project's `.claude/telemetry/` with zero network egress
+  3. A build/CI test greps all shipped hooks and fails if any emit network egress (curl/fetch/http/socket)
+  4. `conjure audit` produces a skill "retire-list" (skills with 0 loads across recent sessions) folded from the local event log
+  5. `TELEMETRY.md` documenting the schema ships in the same change as the hook
+**Plans**: TBD
+**Research**: required — MUST verify the exact Claude Code skill-load hook event name/shape against installed CC ≥2.1.117 before building (expected `PreToolUse` + `tool_name:"Skill"` / `InstructionsLoaded`, LOW-confidence until confirmed); design the hook with a `SessionStart`/`Stop` coarse-signal fallback so the retire-list still works if the granular event differs
+
+Plans:
+- [ ] 07-01: TBD
+
+## Progress
+
+**Execution Order:**
+Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
+
+| Phase | Plans Complete | Status | Completed |
+|-------|----------------|--------|-----------|
+| 1. Pre-flight & Cross-Platform Hooks | 0/TBD | Not started | - |
+| 2. Dry-Run Enforcement Chokepoint | 0/TBD | Not started | - |
+| 3. Sandboxed Per-Profile Fixtures | 0/TBD | Not started | - |
+| 4. Regression Suite & Dry-Run Proof | 0/TBD | Not started | - |
+| 5. README Demo | 0/TBD | Not started | - |
+| 6. Cost Estimator | 0/TBD | Not started | - |
+| 7. Skill-Firing Telemetry | 0/TBD | Not started | - |

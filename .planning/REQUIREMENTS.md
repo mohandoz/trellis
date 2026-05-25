@@ -71,36 +71,38 @@ Explicitly excluded for v0.3.0. Documented to prevent scope creep.
 
 ## Traceability
 
-Populated during roadmap creation. Each requirement maps to exactly one phase.
+Each requirement maps to exactly one phase. See `.planning/ROADMAP.md` for phase detail.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SAFE-01 | TBD | Pending |
-| SAFE-02 | TBD | Pending |
-| SAFE-03 | TBD | Pending |
-| SAFE-04 | TBD | Pending |
-| TEST-01 | TBD | Pending |
-| TEST-02 | TBD | Pending |
-| TEST-03 | TBD | Pending |
-| TEST-04 | TBD | Pending |
-| TEST-05 | TBD | Pending |
-| TEST-06 | TBD | Pending |
-| TEST-07 | TBD | Pending |
-| COST-01 | TBD | Pending |
-| COST-02 | TBD | Pending |
-| COST-03 | TBD | Pending |
-| TLMY-01 | TBD | Pending |
-| TLMY-02 | TBD | Pending |
-| TLMY-03 | TBD | Pending |
-| TLMY-04 | TBD | Pending |
-| TLMY-05 | TBD | Pending |
-| DOCS-01 | TBD | Pending |
+| SAFE-01 | Phase 2 | Pending |
+| SAFE-02 | Phase 2 | Pending |
+| SAFE-03 | Phase 1 | Pending |
+| SAFE-04 | Phase 1 | Pending |
+| TEST-01 | Phase 3 | Pending |
+| TEST-02 | Phase 3 | Pending |
+| TEST-03 | Phase 4 | Pending |
+| TEST-04 | Phase 3 | Pending |
+| TEST-05 | Phase 4 | Pending |
+| TEST-06 | Phase 4 | Pending |
+| TEST-07 | Phase 4 | Pending |
+| COST-01 | Phase 6 | Pending |
+| COST-02 | Phase 6 | Pending |
+| COST-03 | Phase 6 | Pending |
+| TLMY-01 | Phase 7 | Pending |
+| TLMY-02 | Phase 7 | Pending |
+| TLMY-03 | Phase 7 | Pending |
+| TLMY-04 | Phase 7 | Pending |
+| TLMY-05 | Phase 7 | Pending |
+| DOCS-01 | Phase 5 | Pending |
 
 **Coverage:**
 - v1 requirements: 20 total
-- Mapped to phases: 0 (roadmap pending)
-- Unmapped: 20 ⚠️
+- Mapped to phases: 20 ✓
+- Unmapped: 0 ✓
+
+**Per-phase counts:** Phase 1 (2), Phase 2 (2), Phase 3 (3), Phase 4 (4), Phase 5 (1), Phase 6 (3), Phase 7 (5)
 
 ---
 *Requirements defined: 2026-05-24*
-*Last updated: 2026-05-24 after initial definition*
+*Last updated: 2026-05-24 after roadmap creation (traceability populated)*
