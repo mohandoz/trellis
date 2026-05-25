@@ -134,6 +134,26 @@ echo
 echo "─────────────────────────────────────"
 echo "PASS: $PASS    WARN: $WARN    FAIL: $FAIL"
 echo "─────────────────────────────────────"
+
+if [ "${CONJURE_COST:-0}" = "1" ]; then
+  : "${CONJURE_HOME:="$(cd "$(dirname "$0")/.." && pwd)"}"
+  PRICE_FILE="$CONJURE_HOME/lib/prices.json"
+
+  if ! command -v jq >/dev/null 2>&1; then
+    echo "  [--cost] jq not installed — install jq to use cost estimation"
+  else
+    MODEL=$(jq -r '.default_model' "$PRICE_FILE")
+    PRICE_INPUT=$(jq -r --arg m "$MODEL" '.models[] | select(.model==$m) | .input_per_mtok' "$PRICE_FILE")
+    PRICING_DATE=$(jq -r --arg m "$MODEL" '.models[] | select(.model==$m) | .pricing_date' "$PRICE_FILE")
+    BAND_PCT=$(jq -r --arg m "$MODEL" '.models[] | select(.model==$m) | .band_pct' "$PRICE_FILE")
+
+    TOKENS_TO_USE="${EST_TOKENS:-0}"
+
+    echo
+    echo "── Cost Estimate ──────────────────────────────────────"
+  fi
+fi
+
 [ "$FAIL" -gt 0 ] && exit 2
 [ "$WARN" -gt 0 ] && exit 1
 exit 0
