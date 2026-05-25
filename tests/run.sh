@@ -319,6 +319,48 @@ for fx in "$CONJURE_HOME/tests/fixtures"/[^_]*/; do
   rm -rf "$DRY_ORIG" "$DRY_SNAP"
 done
 
+echo
+echo "▸ Failure-mode reproductions (TEST-07)"
+
+# FM-1: CLAUDE.md exceeds 200-line hard cap — audit-setup.sh detects this
+FM_DIR="$(mktemp -d)"
+printf '# SYNTHETIC — size cap test\n' > "$FM_DIR/CLAUDE.md"
+for i in $(seq 1 205); do printf '# filler line %s\n' "$i" >> "$FM_DIR/CLAUDE.md"; done
+FM_OUT="$(bash "$CONJURE_HOME/scripts/audit-setup.sh" "$FM_DIR" 2>&1 || true)"
+if printf '%s\n' "$FM_OUT" | grep -q "HARD CAP exceeded"; then
+  pass "FM: size cap detected by audit"
+else
+  fail "FM: size cap NOT detected"
+fi
+rm -rf "$FM_DIR"
+
+# FM-2: Hook uses exit 1 (non-blocking) instead of exit 2 (blocking)
+# NOTE: audit-setup.sh does NOT check hook exit codes — use grep directly (Finding F-01)
+FM_DIR="$(mktemp -d)"
+mkdir -p "$FM_DIR/.claude/hooks"
+printf '#!/usr/bin/env bash\nexit 1\n' > "$FM_DIR/.claude/hooks/bad-gate.sh"
+if grep -qE '^exit 1$' "$FM_DIR/.claude/hooks/bad-gate.sh"; then
+  pass "FM: hook exit 1 detectable via grep"
+else
+  fail "FM: hook exit 1 NOT found"
+fi
+rm -rf "$FM_DIR"
+
+# FM-3: .conjure-version mismatch — conjure update detects this
+# NOTE: audit-setup.sh does NOT check .conjure-version — use cli/conjure update (Finding F-01)
+# NOTE: version file must be at .claude/.conjure-version (not root level — Pitfall 5)
+FM_DIR="$(mktemp -d)"
+mkdir -p "$FM_DIR/.claude"
+printf '0.1.0\n' > "$FM_DIR/.claude/.conjure-version"
+FM_OUT="$(CONJURE_HOME="$CONJURE_HOME" cli/conjure update "$FM_DIR" 2>&1 || true)"
+if printf '%s\n' "$FM_OUT" | grep -q "pinned to" && \
+   ! printf '%s\n' "$FM_OUT" | grep -q "Up to date"; then
+  pass "FM: version mismatch detected by conjure update"
+else
+  fail "FM: version mismatch NOT detected"
+fi
+rm -rf "$FM_DIR"
+
 # Summary
 echo
 echo "═══════════════════════════════════════════════════════════════════"
