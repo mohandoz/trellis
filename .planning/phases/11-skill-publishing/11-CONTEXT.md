@@ -52,10 +52,6 @@ Docker (Phase 14), or automated fork+PR execution.
 - **D-05:** `--to <org/repo>` uses the same staged + print flow, just
   substitutes the target repo in the printed `gh pr create` command. No extra
   automation for private repos — same minimal touch as the default path.
-- **D-06:** What gets submitted (SKILL.md vs. SKILL.md + plugin.json stub) is
-  left to researcher/planner to determine based on `mohandoz/conjure`
-  contribution conventions.
-
 ### SHA-Pinning (SKILL-03)
 - **D-07:** Two guards run before any submission step:
   1. **Skill clean check:** `git status --porcelain .claude/skills/<name>/` must
@@ -68,6 +64,7 @@ Docker (Phase 14), or automated fork+PR execution.
   combined generic message).
 
 ### Claude's Discretion
+- **D-06:** What gets submitted (SKILL.md vs. SKILL.md + plugin.json stub) — researcher resolved: SKILL.md-only, no plugin.json stub
 - Exact content of the plugin.json stub (if any) — researcher determines from
   `mohandoz/conjure` contribution conventions
 - Function naming inside `scripts/publish-skill.sh`
