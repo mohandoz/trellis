@@ -62,16 +62,11 @@ foot-guns, cross-platform Node.js hooks.
 
 ## 🚀 Quickstart
 
-```bash
-# 1. Install
-curl -sSL https://raw.githubusercontent.com/mohandoz/conjure/main/install.sh | bash
+<div align="center">
+<img src=".github/assets/demo.gif" alt="conjure init --dry-run --profile=ts-next . then conjure audit" width="700"/>
 
-# 2. Initialize a project (auto-detects new or existing)
-cd /path/to/your/repo
-conjure init existing --profile=python-fastapi .
-
-# 3. Open Claude Code, paste PROMPT.md, watch the daemon obey
-```
+*`conjure init --dry-run --profile=ts-next .` — zero mutations, fully auditable.*
+</div>
 
 That's it. Run `conjure audit` anytime to verify health.
 

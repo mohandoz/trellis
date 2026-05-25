@@ -30,6 +30,9 @@ jobs:
       - name: Run kit test suite
         run: bash tests/run.sh
 
+      - name: Assert demo GIF committed
+        run: test -s .github/assets/demo.gif
+
       - name: Audit script smoke
         run: bash scripts/audit-setup.sh . || true
 
