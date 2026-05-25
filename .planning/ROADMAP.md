@@ -16,7 +16,7 @@ Make Conjure installable and shareable through every standard channel while clea
 - [x] **Phase 09: 3-Way Merge** - Implement `cmd_update --apply` via `lib/merge.sh` + base snapshot (completed 2026-05-25)
 - [x] **Phase 10: Marketplace Publish** - Wire and validate the Claude Code Marketplace plugin manifest (completed 2026-05-25)
 - [ ] **Phase 11: Skill Publishing** - Add `conjure publish-skill` command with egress scan + PR flow
-- [ ] **Phase 12: Org Overlay** - Implement `conjure init --overlay` + `conjure refresh-overlay` system
+- [x] **Phase 12: Org Overlay** - Implement `conjure init --overlay` + `conjure refresh-overlay` system (completed 2026-05-25)
 - [ ] **Phase 13: Homebrew Tap** - Publish `mohandoz/homebrew-conjure` formula and auto-bump action
 - [ ] **Phase 14: Docker + Windows CI** - Multi-arch Docker image and `windows-latest` CI matrix entry
 - [ ] **Phase 15: Release Pipeline** - Single `release.yml` wires all distribution targets under one gate
@@ -131,7 +131,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 12-03-PLAN.md — Add OVLY-01..OVLY-05 regression tests in tests/run.sh (OVLY-01, OVLY-02, OVLY-03, OVLY-04, OVLY-05)
+- [x] 12-03-PLAN.md — Add OVLY-01..OVLY-05 regression tests in tests/run.sh (OVLY-01, OVLY-02, OVLY-03, OVLY-04, OVLY-05)
 
 ### Phase 13: Homebrew Tap
 
@@ -182,7 +182,7 @@ Plans:
 | 09. 3-Way Merge | v0.4.0 | 3/3 | Complete    | 2026-05-25 |
 | 10. Marketplace Publish | v0.4.0 | 4/4 | Complete    | 2026-05-25 |
 | 11. Skill Publishing | v0.4.0 | 0/2 | Not started | - |
-| 12. Org Overlay | v0.4.0 | 2/3 | In Progress|  |
+| 12. Org Overlay | v0.4.0 | 3/3 | Complete   | 2026-05-25 |
 | 13. Homebrew Tap | v0.4.0 | 0/TBD | Not started | - |
 | 14. Docker + Windows CI | v0.4.0 | 0/TBD | Not started | - |
 | 15. Release Pipeline | v0.4.0 | 0/TBD | Not started | - |
