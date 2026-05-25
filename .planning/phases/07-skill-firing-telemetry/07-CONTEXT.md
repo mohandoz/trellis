@@ -82,10 +82,10 @@ Requirements: TLMY-01, TLMY-02, TLMY-03, TLMY-04, TLMY-05.
   Test fails if any match found in the telemetry hook file specifically.
 
 ### File Layout
-- **D-12:** New files:
+- **D-12:** [informational] New files:
   - `templates/hooks-nodejs/skill-telemetry.mjs` — the hook (PreToolUse + UserPromptExpansion)
   - `TELEMETRY.md` — schema doc at repo root (alongside README.md)
-- **D-13:** Modified files:
+- **D-13:** [informational] Modified files:
   - `templates/settings.json.tmpl` — add PreToolUse Skill + UserPromptExpansion hook entries
   - `scripts/audit-setup.sh` — add retire-list section (after cost section pattern)
   - `cli/conjure` — add `--retire-list` flag parsing in `cmd_audit()`
