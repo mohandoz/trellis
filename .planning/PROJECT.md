@@ -40,8 +40,8 @@ and verify a correct, safe harness.
 
 <!-- Next milestone: v0.3.0 — Testing + telemetry. Hypotheses until shipped + validated. -->
 
-- [ ] Test fixtures: one example project per stack profile, audited green
-- [ ] Full regression suite: `tests/run.sh` runs audit assertions per fixture
+- [x] Test fixtures: one example project per stack profile, audited green — Validated in Phase 03 (TEST-01, TEST-02, TEST-04)
+- [x] Full regression suite: `tests/run.sh` runs audit assertions per fixture — Validated in Phase 03 (TEST-01, TEST-02, TEST-04)
 - [x] `conjure init --dry-run` enforced everywhere (no mutations on dry run) — Validated in Phase 02 (SAFE-01, SAFE-02)
 - [ ] Skill-firing telemetry: hook records which skills load per session → retire-list signal
 - [ ] Cost estimator: `conjure audit --cost` predicts session token cost from harness size
