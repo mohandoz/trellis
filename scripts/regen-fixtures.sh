@@ -124,7 +124,7 @@ regen_profile() {
   cp -r "$seed/." "$FIXTURES_DIR/$p/"
   if ! bash "$CONJURE_HOME/scripts/audit-setup.sh" "$FIXTURES_DIR/$p" >/dev/null 2>&1; then
     printf '[regen] WARN: %s fixture fails audit — check profile output\n' "$p" >&2
-    exit 1
+    return 1  # triggers 'trap RETURN', cleans $seed; caller decides whether to abort
   fi
   _write_expect "$p"
   printf '[regen] %s done\n' "$p"
@@ -141,6 +141,8 @@ for p in $PROFILES; do
   if [ -n "${UPDATE_EXPECT:-}" ]; then
     _write_expect "$p"
   else
-    regen_profile "$p"
+    if ! regen_profile "$p"; then
+      exit 1
+    fi
   fi
 done
