@@ -182,15 +182,14 @@ cmd_update() {
   echo
   echo "▸ Computing diff against current templates..."
   local diff_count=0
-  # shellcheck disable=SC2046
-  for f in $(find "$CONJURE_HOME/templates/skills" -name SKILL.md); do
+  while IFS= read -r f; do
     local rel="${f#$CONJURE_HOME/templates/}"
     local proj="$target/.claude/${rel%/SKILL.md}/SKILL.md"
     if [ -f "$proj" ] && ! diff -q "$f" "$proj" >/dev/null 2>&1; then
       echo "  ~ ${rel%/SKILL.md}/SKILL.md (changed upstream)"
       diff_count=$((diff_count+1))
     fi
-  done
+  done < <(find "$CONJURE_HOME/templates/skills" -name SKILL.md)
 
   if [ "$action" = "--check" ]; then
     echo
@@ -313,7 +312,9 @@ cmd_publish_skill() {
 
 cmd_help() {
   if [ -n "${1:-}" ]; then
-    sed -n "/^cmd_$1()/,/^}/p" "$0" | head -20
+    local fn_name
+    fn_name="$(printf '%s' "$1" | tr '-' '_')"
+    sed -n "/^cmd_${fn_name}()/,/^}/p" "$0" | head -20
   else
     usage
   fi
