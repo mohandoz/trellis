@@ -23,7 +23,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: Dry-Run Enforcement Chokepoint** - Route every write through `lib/mutate.sh` so `--dry-run` mutates nothing, everywhere (completed 2026-05-24)
 - [x] **Phase 3: Sandboxed Per-Profile Fixtures** - Committed, hermetic example project per stack profile plus one intentionally-failing fixture (completed 2026-05-24)
 - [x] **Phase 4: Regression Suite & Dry-Run Proof** - Golden-file fixture loop, byte-identical dry-run snapshot assertion, failure-mode reproductions, and a Windows CI leg (completed 2026-05-25)
-- [ ] **Phase 5: README Demo** - asciinema→GIF demo of `conjure init` + `conjure audit` recorded against safe dry-run
+- [x] **Phase 5: README Demo** - asciinema→GIF demo of `conjure init` + `conjure audit` recorded against safe dry-run (completed 2026-05-25)
 - [ ] **Phase 6: Cost Estimator** - `conjure audit --cost` offline token/dollar estimate with an explicit ±band, plus opt-in `--exact`
 - [ ] **Phase 7: Skill-Firing Telemetry** - Opt-in, local-only, PII-free skill telemetry feeding a retire-list, with an enforced no-egress test
 
@@ -136,7 +136,7 @@ Plans:
 - [x] 05-01-PLAN.md — Create scripts/record-demo.sh: preflight, mktemp isolation, expect automation of conjure init --dry-run + audit, agg GIF conversion (DOCS-01)
 
 **Wave 2** *(blocked on Wave 1 completion and local GIF generation)*
-- [ ] 05-02-PLAN.md — Generate demo.gif locally, embed in README.md Quickstart section, add CI assertion to test job (DOCS-01)
+- [x] 05-02-PLAN.md — Generate demo.gif locally, embed in README.md Quickstart section, add CI assertion to test job (DOCS-01)
 
 ### Phase 6: Cost Estimator
 **Goal**: `conjure audit --cost` gives an honest, offline-by-default estimate of per-session harness token cost without false precision
@@ -182,6 +182,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 | 2. Dry-Run Enforcement Chokepoint | 6/6 | Complete    | 2026-05-24 |
 | 3. Sandboxed Per-Profile Fixtures | 3/3 | Complete    | 2026-05-24 |
 | 4. Regression Suite & Dry-Run Proof | 3/3 | Complete    | 2026-05-25 |
-| 5. README Demo | 1/2 | In Progress|  |
+| 5. README Demo | 2/2 | Complete   | 2026-05-25 |
 | 6. Cost Estimator | 0/TBD | Not started | - |
 | 7. Skill-Firing Telemetry | 0/TBD | Not started | - |
