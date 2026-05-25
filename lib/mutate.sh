@@ -57,9 +57,9 @@ mutate_write() {
     return 0
   fi
   if [ "$mode" = "--append" ]; then
-    printf '%s\n' "$content" >> "$dest"
+    printf '%s' "$content" >> "$dest"
   else
-    printf '%s\n' "$content" > "$dest"
+    printf '%s' "$content" > "$dest"
   fi
 }
 
