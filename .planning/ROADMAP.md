@@ -182,7 +182,7 @@ Plans:
 | 09. 3-Way Merge | v0.4.0 | 3/3 | Complete    | 2026-05-25 |
 | 10. Marketplace Publish | v0.4.0 | 4/4 | Complete    | 2026-05-25 |
 | 11. Skill Publishing | v0.4.0 | 0/2 | Not started | - |
-| 12. Org Overlay | v0.4.0 | 3/3 | Complete   | 2026-05-25 |
+| 12. Org Overlay | v0.4.0 | 3/3 | Complete    | 2026-05-25 |
 | 13. Homebrew Tap | v0.4.0 | 0/TBD | Not started | - |
 | 14. Docker + Windows CI | v0.4.0 | 0/TBD | Not started | - |
 | 15. Release Pipeline | v0.4.0 | 0/TBD | Not started | - |

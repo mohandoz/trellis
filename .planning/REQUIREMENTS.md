@@ -32,11 +32,11 @@
 
 ### Org Overlay (DIST-05)
 
-- [ ] **OVLY-01**: User can run `conjure init --overlay <git-url>` to apply the base kit first and then overlay files from the given repo; all writes go through `lib/mutate.sh`
-- [ ] **OVLY-02**: After `conjure init --overlay`, a `.claude/.conjure-org-overlay` marker file records the overlay URL and the cloned commit SHA for audit traceability
-- [ ] **OVLY-03**: User can run `conjure refresh-overlay` to re-pull the org overlay and re-apply it; overlay-wins semantics on conflict
-- [ ] **OVLY-04**: `conjure audit` detects and reports overlay presence, the pinned SHA, and any drift from the currently checked-out overlay HEAD
-- [ ] **OVLY-05**: Overlay repo authentication uses the user's existing git credential store; no credentials are stored by Conjure
+- [x] **OVLY-01**: User can run `conjure init --overlay <git-url>` to apply the base kit first and then overlay files from the given repo; all writes go through `lib/mutate.sh`
+- [x] **OVLY-02**: After `conjure init --overlay`, a `.claude/.conjure-org-overlay` marker file records the overlay URL and the cloned commit SHA for audit traceability
+- [x] **OVLY-03**: User can run `conjure refresh-overlay` to re-pull the org overlay and re-apply it; overlay-wins semantics on conflict
+- [x] **OVLY-04**: `conjure audit` detects and reports overlay presence, the pinned SHA, and any drift from the currently checked-out overlay HEAD
+- [x] **OVLY-05**: Overlay repo authentication uses the user's existing git credential store; no credentials are stored by Conjure
 
 ### Homebrew Formula (DIST-02)
 
