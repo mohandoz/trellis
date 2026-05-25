@@ -60,12 +60,12 @@
 
 ### Tech Debt Clearance
 
-- [ ] **TECH-02a**: `VALIDATION.md` created for Phase 01 (pre-flight cross-platform hooks) with executable verify commands
-- [ ] **TECH-02b**: `VALIDATION.md` created for Phase 02 (dry-run enforcement) with executable verify commands
-- [ ] **TECH-02c**: `VALIDATION.md` created for Phase 04 (regression suite + dry-run proof) with executable verify commands
-- [ ] **TECH-02d**: `VALIDATION.md` created for Phase 05 (README demo) with executable verify commands
-- [ ] **TECH-02e**: `VALIDATION.md` created for Phase 06 (cost estimator) with executable verify commands
-- [ ] **TECH-02f**: `VALIDATION.md` created for Phase 07 (skill-firing telemetry) with executable verify commands
+- [x] **TECH-02a**: `VALIDATION.md` created for Phase 01 (pre-flight cross-platform hooks) with executable verify commands
+- [x] **TECH-02b**: `VALIDATION.md` created for Phase 02 (dry-run enforcement) with executable verify commands
+- [x] **TECH-02c**: `VALIDATION.md` created for Phase 04 (regression suite + dry-run proof) with executable verify commands
+- [x] **TECH-02d**: `VALIDATION.md` created for Phase 05 (README demo) with executable verify commands
+- [x] **TECH-02e**: `VALIDATION.md` created for Phase 06 (cost estimator) with executable verify commands
+- [x] **TECH-02f**: `VALIDATION.md` created for Phase 07 (skill-firing telemetry) with executable verify commands
 - [ ] **TECH-03**: `windows-latest` matrix entry added to CI; all existing tests pass with `shell: bash`; `.mjs` hooks tested with `shell: pwsh`
 
 ---
