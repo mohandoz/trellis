@@ -41,7 +41,7 @@ Requirements for the v0.3.0 milestone. Each maps to a roadmap phase. Theme: clos
 
 ### Docs & Adoption
 
-- [ ] **DOCS-01**: README includes an asciinema→GIF demo of `conjure init` + `conjure audit` (recorded against safe dry-run)
+- [x] **DOCS-01**: README includes an asciinema→GIF demo of `conjure init` + `conjure audit` (recorded against safe dry-run)
 
 ## v2 Requirements
 
@@ -94,7 +94,7 @@ Each requirement maps to exactly one phase. See `.planning/ROADMAP.md` for phase
 | TLMY-03 | Phase 7 | Pending |
 | TLMY-04 | Phase 7 | Pending |
 | TLMY-05 | Phase 7 | Pending |
-| DOCS-01 | Phase 5 | Pending |
+| DOCS-01 | Phase 5 | Complete |
 
 **Coverage:**
 - v1 requirements: 20 total
