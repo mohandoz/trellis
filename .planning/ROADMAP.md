@@ -109,11 +109,16 @@ Plans:
   2. The suite asserts that a `--dry-run` run leaves a fixture tree byte-identical (snapshot invariant)
   3. CI includes a `windows-latest` leg that validates `.mjs` hook wiring fires
   4. Each failure mode documented in FAILURE-MODES.md has a reproduction encoded as a test
-  5. Regenerating fixtures (e.g. `update-fixtures`) and diffing prevents silent golden-file rot
-**Plans**: TBD
+  5. Regenerating fixtures (e.g. `--update-expect`) and diffing prevents silent golden-file rot
+**Plans**: 3 plans
 
 Plans:
-- [ ] 04-01: TBD
+**Wave 1** *(parallel — no dependencies between them)*
+- [ ] 04-01-PLAN.md — Create 9 green-fixture EXPECT files, add golden-file EXPECT loop to tests/run.sh, extend scripts/regen-fixtures.sh with _write_expect (TEST-03)
+- [ ] 04-02-PLAN.md — Add windows-hook-wiring job to .github/workflows/ci.yml: scaffold fixture on windows-latest, assert node wiring in settings.json (TEST-06)
+
+**Wave 2** *(blocked on 04-01 — both add sections to tests/run.sh)*
+- [ ] 04-03-PLAN.md — Add dry-run byte-identical snapshot section and failure-mode reproductions section to tests/run.sh (TEST-05, TEST-07)
 
 ### Phase 5: README Demo
 **Goal**: A new reader sees Conjure work in seconds via a recorded demo of the now-trustworthy `conjure init` + `conjure audit`
@@ -172,7 +177,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 | 1. Pre-flight & Cross-Platform Hooks | 2/2 | Complete    | 2026-05-24 |
 | 2. Dry-Run Enforcement Chokepoint | 6/6 | Complete    | 2026-05-24 |
 | 3. Sandboxed Per-Profile Fixtures | 3/3 | Complete    | 2026-05-24 |
-| 4. Regression Suite & Dry-Run Proof | 0/TBD | Not started | - |
+| 4. Regression Suite & Dry-Run Proof | 0/3 | Not started | - |
 | 5. README Demo | 0/TBD | Not started | - |
 | 6. Cost Estimator | 0/TBD | Not started | - |
 | 7. Skill-Firing Telemetry | 0/TBD | Not started | - |
