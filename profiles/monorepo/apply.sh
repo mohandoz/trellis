@@ -2,8 +2,8 @@
 # monorepo profile — adds nested CLAUDE.md scaffolds per package.
 set -uo pipefail
 TARGET="${1:-$(pwd)}"
-DRY="${2:-0}"
 PROFILE_DIR="$(cd "$(dirname "$0")" && pwd)"
+source "$CONJURE_HOME/lib/mutate.sh"
 
 echo "▸ Applying profile: monorepo → $TARGET"
 
@@ -25,9 +25,7 @@ for dir in "${DETECTED[@]}"; do
     name=$(basename "$pkg")
 
     if [ ! -f "$pkg/CLAUDE.md" ]; then
-      if [ "$DRY" = 0 ]; then
-        cat > "$pkg/CLAUDE.md" <<EOF
-# $dir/$name — Local Working Notes
+      MONOREPO_CONTENT="# $dir/$name — Local Working Notes
 
 <!-- This nested CLAUDE.md loads automatically when Claude reads files here. -->
 <!-- ≤50 lines. Override root rules ONLY where this package differs. -->
@@ -46,9 +44,8 @@ for dir in "${DETECTED[@]}"; do
 ## Notes
 
 - Owner: <name>
-- Type: <library | service | app>
-EOF
-      fi
+- Type: <library | service | app>"
+      mutate_write "$pkg/CLAUDE.md" "$MONOREPO_CONTENT"
       echo "  ✓ scaffolded $dir/$name/CLAUDE.md"
     else
       echo "  • $dir/$name/CLAUDE.md exists — skipping"
@@ -59,9 +56,10 @@ done
 # Append monorepo fragment to root CLAUDE.md
 if [ -f "$TARGET/CLAUDE.md" ] && [ -f "$PROFILE_DIR/CLAUDE.md.fragment" ]; then
   if ! grep -q "<!-- profile:monorepo -->" "$TARGET/CLAUDE.md"; then
-    [ "$DRY" = 0 ] && cat "$PROFILE_DIR/CLAUDE.md.fragment" >> "$TARGET/CLAUDE.md"
+    mutate_write "$TARGET/CLAUDE.md" "$(cat "$PROFILE_DIR/CLAUDE.md.fragment")" "--append"
     echo "  ✓ appended monorepo fragment to root CLAUDE.md"
   fi
 fi
 
+mutate_summary
 echo "✓ Profile monorepo applied"
