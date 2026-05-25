@@ -1070,6 +1070,177 @@ fi
 # CLEANUP SKILL sandbox
 rm -rf "$SKILL_DIR"
 
+# ──────────────────────────────────────────────────────────────────────────────
+# OVLY org-overlay tests (OVLY-01 through OVLY-05)
+# ──────────────────────────────────────────────────────────────────────────────
+echo
+echo "▸ OVLY org-overlay tests (OVLY-01 through OVLY-05)"
+
+# OVLY-SETUP: local git repo as mock overlay (file:// URL — no network required)
+OVLY_REPO="$(mktemp -d)"
+git -C "$OVLY_REPO" init -q
+git -C "$OVLY_REPO" config user.email "test@conjure"
+git -C "$OVLY_REPO" config user.name "conjure-test"
+mkdir -p "$OVLY_REPO/skills/org-skill"
+printf 'name: org-skill\ndescription: Org overlay skill for conjure regression testing.\n' \
+  > "$OVLY_REPO/skills/org-skill/SKILL.md"
+mkdir -p "$OVLY_REPO/agents"
+printf '# org-agent\nOrg agent stub.\n' > "$OVLY_REPO/agents/org-agent.md"
+git -C "$OVLY_REPO" add -A
+git -C "$OVLY_REPO" commit -q -m "overlay v1"
+OVLY_URL="file://$OVLY_REPO"
+OVLY_EXPECTED_SHA="$(git -C "$OVLY_REPO" rev-parse HEAD)"
+
+# Target dir — a minimal project with .claude/ ready to receive overlay
+OVLY_TARGET="$(mktemp -d)"
+mkdir -p "$OVLY_TARGET/.claude"
+
+# OVLY-01: init-overlay exits 0 and applies overlay files
+OVLY_INIT_RC=0
+CONJURE_HOME="$CONJURE_HOME" bash "$CONJURE_HOME/scripts/init-overlay.sh" \
+  "$OVLY_URL" "$OVLY_TARGET" >/dev/null 2>&1 || OVLY_INIT_RC=$?
+if [ "$OVLY_INIT_RC" -eq 0 ]; then
+  pass "init-overlay exits 0 (OVLY-01)"
+else
+  fail "init-overlay did not exit 0 — got rc=$OVLY_INIT_RC (OVLY-01)"
+fi
+
+if [ -f "$OVLY_TARGET/.claude/skills/org-skill/SKILL.md" ]; then
+  pass "overlay skill file present in .claude/ after init (OVLY-01)"
+else
+  fail "overlay skill file missing from .claude/ after init (OVLY-01)"
+fi
+
+# OVLY-01c: DRY_RUN honored — no files written to a fresh target
+OVLY_DRY_DIR="$(mktemp -d)"
+mkdir -p "$OVLY_DRY_DIR/.claude"
+OVLY_DRY_RC=0
+OVLY_DRY_OUT="$(CONJURE_HOME="$CONJURE_HOME" DRY_RUN=1 bash "$CONJURE_HOME/scripts/init-overlay.sh" \
+  "$OVLY_URL" "$OVLY_DRY_DIR" 2>&1)" || OVLY_DRY_RC=$?
+if [ "$OVLY_DRY_RC" -eq 0 ]; then
+  pass "init-overlay exits 0 with DRY_RUN=1 (OVLY-01)"
+else
+  fail "init-overlay did not exit 0 with DRY_RUN=1 — got rc=$OVLY_DRY_RC (OVLY-01)"
+fi
+if [ ! -f "$OVLY_DRY_DIR/.claude/.conjure-org-overlay" ]; then
+  pass "DRY_RUN=1 writes no files to .claude/ (OVLY-01)"
+else
+  fail "DRY_RUN=1 wrote .conjure-org-overlay — DRY_RUN not honored (OVLY-01)"
+fi
+if printf '%s\n' "$OVLY_DRY_OUT" | grep -q 'mutations skipped'; then
+  pass "DRY_RUN=1 mutate_summary reports mutations skipped (OVLY-01)"
+else
+  fail "DRY_RUN=1 mutate_summary did not print mutations skipped (OVLY-01)"
+fi
+rm -rf "$OVLY_DRY_DIR"
+
+# OVLY-02: marker file written with correct url= and sha=
+if [ -f "$OVLY_TARGET/.claude/.conjure-org-overlay" ]; then
+  pass ".conjure-org-overlay marker exists (OVLY-02)"
+else
+  fail ".conjure-org-overlay marker missing (OVLY-02)"
+fi
+MARKER_URL="$(grep '^url=' "$OVLY_TARGET/.claude/.conjure-org-overlay" | cut -d= -f2-)"
+if [ "$MARKER_URL" = "$OVLY_URL" ]; then
+  pass "marker url= matches overlay URL (OVLY-02)"
+else
+  fail "marker url= mismatch: got=$MARKER_URL expected=$OVLY_URL (OVLY-02)"
+fi
+MARKER_SHA="$(grep '^sha=' "$OVLY_TARGET/.claude/.conjure-org-overlay" | cut -d= -f2)"
+if [ "$MARKER_SHA" = "$OVLY_EXPECTED_SHA" ]; then
+  pass "marker sha= matches overlay commit SHA (OVLY-02)"
+else
+  fail "marker sha= mismatch: got=$MARKER_SHA expected=$OVLY_EXPECTED_SHA (OVLY-02)"
+fi
+
+# OVLY-03: refresh-overlay without marker exits 1 with correct message
+NO_MARKER_DIR="$(mktemp -d)"
+mkdir -p "$NO_MARKER_DIR/.claude"
+NOMK_RC=0
+NOMK_OUT="$(CONJURE_HOME="$CONJURE_HOME" bash "$CONJURE_HOME/scripts/refresh-overlay.sh" \
+  "$NO_MARKER_DIR" 2>&1)" || NOMK_RC=$?
+if [ "$NOMK_RC" -eq 1 ]; then
+  pass "refresh-overlay exits 1 when no marker (OVLY-03)"
+else
+  fail "refresh-overlay did not exit 1 on missing marker — got rc=$NOMK_RC (OVLY-03)"
+fi
+if printf '%s\n' "$NOMK_OUT" | grep -q 'No org overlay configured'; then
+  pass "refresh-overlay prints 'No org overlay configured' message (OVLY-03)"
+else
+  fail "refresh-overlay missing 'No org overlay configured' message (OVLY-03)"
+fi
+rm -rf "$NO_MARKER_DIR"
+
+# OVLY-03: refresh-overlay with valid marker exits 0 and re-applies
+REFRESH_RC=0
+CONJURE_HOME="$CONJURE_HOME" bash "$CONJURE_HOME/scripts/refresh-overlay.sh" \
+  "$OVLY_TARGET" >/dev/null 2>&1 || REFRESH_RC=$?
+if [ "$REFRESH_RC" -eq 0 ]; then
+  pass "refresh-overlay exits 0 with valid marker (OVLY-03)"
+else
+  fail "refresh-overlay did not exit 0 — got rc=$REFRESH_RC (OVLY-03)"
+fi
+if [ -f "$OVLY_TARGET/.claude/skills/org-skill/SKILL.md" ]; then
+  pass "overlay file still present after refresh (OVLY-03)"
+else
+  fail "overlay file missing after refresh (OVLY-03)"
+fi
+
+# OVLY-04: audit reports overlay status when SHA matches
+# Create a minimal audit-able target (needs CLAUDE.md)
+printf '# Overlay test project\n' > "$OVLY_TARGET/CLAUDE.md"
+AUDIT_OK_OUT="$(bash "$CONJURE_HOME/scripts/audit-setup.sh" "$OVLY_TARGET" 2>&1)" || true
+if printf '%s\n' "$AUDIT_OK_OUT" | grep -q 'up to date\|overlay'; then
+  pass "audit reports overlay status when marker present (OVLY-04)"
+else
+  fail "audit did not report overlay status (OVLY-04)"
+fi
+
+# OVLY-04: audit reports DRIFT when SHA differs
+printf 'url=%s\nsha=deadbeefdeadbeefdeadbeefdeadbeefdeadbeef' "$OVLY_URL" \
+  > "$OVLY_TARGET/.claude/.conjure-org-overlay"
+AUDIT_DRIFT_OUT="$(bash "$CONJURE_HOME/scripts/audit-setup.sh" "$OVLY_TARGET" 2>&1)" || true
+if printf '%s\n' "$AUDIT_DRIFT_OUT" | grep -q 'DRIFT'; then
+  pass "audit reports DRIFT when pinned SHA differs from upstream (OVLY-04)"
+else
+  fail "audit did not report DRIFT on SHA mismatch (OVLY-04)"
+fi
+# Restore correct marker after DRIFT test
+printf 'url=%s\nsha=%s' "$OVLY_URL" "$OVLY_EXPECTED_SHA" \
+  > "$OVLY_TARGET/.claude/.conjure-org-overlay"
+
+# OVLY-04: audit skips drift check on invalid URL (must not exit 128)
+printf 'url=file:///nonexistent-overlay-repo\nsha=abc123' \
+  > "$OVLY_TARGET/.claude/.conjure-org-overlay"
+AUDIT_SKIP_RC=0
+AUDIT_SKIP_OUT="$(bash "$CONJURE_HOME/scripts/audit-setup.sh" "$OVLY_TARGET" 2>&1)" \
+  || AUDIT_SKIP_RC=$?
+if [ "$AUDIT_SKIP_RC" -ne 128 ]; then
+  pass "audit does not exit 128 on git ls-remote failure (OVLY-04, D-06)"
+else
+  fail "audit exited 128 on git ls-remote failure — must gracefully skip (OVLY-04)"
+fi
+if printf '%s\n' "$AUDIT_SKIP_OUT" | grep -q 'drift check skipped'; then
+  pass "audit prints 'drift check skipped' when git ls-remote fails (OVLY-04)"
+else
+  fail "audit missing 'drift check skipped' message on ls-remote failure (OVLY-04)"
+fi
+
+# OVLY-05: no credential keywords in worker scripts (static grep)
+if grep -qE 'password|credential|token' "$CONJURE_HOME/scripts/init-overlay.sh" 2>/dev/null; then
+  fail "init-overlay.sh contains credential keyword (OVLY-05)"
+else
+  pass "init-overlay.sh contains no credential keywords (OVLY-05)"
+fi
+if grep -qE 'password|credential|token' "$CONJURE_HOME/scripts/refresh-overlay.sh" 2>/dev/null; then
+  fail "refresh-overlay.sh contains credential keyword (OVLY-05)"
+else
+  pass "refresh-overlay.sh contains no credential keywords (OVLY-05)"
+fi
+
+# CLEANUP OVLY sandbox
+rm -rf "$OVLY_REPO" "$OVLY_TARGET"
+
 # Summary
 echo
 echo "═══════════════════════════════════════════════════════════════════"
