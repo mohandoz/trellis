@@ -27,9 +27,9 @@ Requirements for the v0.3.0 milestone. Each maps to a roadmap phase. Theme: clos
 
 ### Cost Estimation
 
-- [ ] **COST-01**: `conjure audit --cost` estimates per-session token cost from harness size using the chars/4 heuristic and a dated price table
-- [ ] **COST-02**: Cost output is labeled an estimate with an explicit ±band and names the model + pricing date (no false precision)
-- [ ] **COST-03**: The default cost path is fully offline; an opt-in `--exact` flag may call Anthropic's `count_tokens` endpoint
+- [x] **COST-01**: `conjure audit --cost` estimates per-session token cost from harness size using the chars/4 heuristic and a dated price table
+- [x] **COST-02**: Cost output is labeled an estimate with an explicit ±band and names the model + pricing date (no false precision)
+- [x] **COST-03**: The default cost path is fully offline; an opt-in `--exact` flag may call Anthropic's `count_tokens` endpoint
 
 ### Telemetry
 
@@ -86,9 +86,9 @@ Each requirement maps to exactly one phase. See `.planning/ROADMAP.md` for phase
 | TEST-05 | Phase 4 | Complete |
 | TEST-06 | Phase 4 | Complete |
 | TEST-07 | Phase 4 | Complete |
-| COST-01 | Phase 6 | Pending |
-| COST-02 | Phase 6 | Pending |
-| COST-03 | Phase 6 | Pending |
+| COST-01 | Phase 6 | Complete |
+| COST-02 | Phase 6 | Complete |
+| COST-03 | Phase 6 | Complete |
 | TLMY-01 | Phase 7 | Pending |
 | TLMY-02 | Phase 7 | Pending |
 | TLMY-03 | Phase 7 | Pending |
