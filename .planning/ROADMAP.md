@@ -22,7 +22,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Pre-flight & Cross-Platform Hooks** - Extract reusable pre-flight with OS-aware fix-its and make generated hook wiring run on native Windows (completed 2026-05-24)
 - [x] **Phase 2: Dry-Run Enforcement Chokepoint** - Route every write through `lib/mutate.sh` so `--dry-run` mutates nothing, everywhere (completed 2026-05-24)
 - [x] **Phase 3: Sandboxed Per-Profile Fixtures** - Committed, hermetic example project per stack profile plus one intentionally-failing fixture (completed 2026-05-24)
-- [ ] **Phase 4: Regression Suite & Dry-Run Proof** - Golden-file fixture loop, byte-identical dry-run snapshot assertion, failure-mode reproductions, and a Windows CI leg
+- [x] **Phase 4: Regression Suite & Dry-Run Proof** - Golden-file fixture loop, byte-identical dry-run snapshot assertion, failure-mode reproductions, and a Windows CI leg (completed 2026-05-25)
 - [ ] **Phase 5: README Demo** - asciinema→GIF demo of `conjure init` + `conjure audit` recorded against safe dry-run
 - [ ] **Phase 6: Cost Estimator** - `conjure audit --cost` offline token/dollar estimate with an explicit ±band, plus opt-in `--exact`
 - [ ] **Phase 7: Skill-Firing Telemetry** - Opt-in, local-only, PII-free skill telemetry feeding a retire-list, with an enforced no-egress test
@@ -118,7 +118,7 @@ Plans:
 - [x] 04-02-PLAN.md — Add windows-hook-wiring job to .github/workflows/ci.yml: scaffold fixture on windows-latest, assert node wiring in settings.json (TEST-06)
 
 **Wave 2** *(blocked on 04-01 — both add sections to tests/run.sh)*
-- [ ] 04-03-PLAN.md — Add dry-run byte-identical snapshot section and failure-mode reproductions section to tests/run.sh (TEST-05, TEST-07)
+- [x] 04-03-PLAN.md — Add dry-run byte-identical snapshot section and failure-mode reproductions section to tests/run.sh (TEST-05, TEST-07)
 
 ### Phase 5: README Demo
 **Goal**: A new reader sees Conjure work in seconds via a recorded demo of the now-trustworthy `conjure init` + `conjure audit`
@@ -177,7 +177,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 | 1. Pre-flight & Cross-Platform Hooks | 2/2 | Complete    | 2026-05-24 |
 | 2. Dry-Run Enforcement Chokepoint | 6/6 | Complete    | 2026-05-24 |
 | 3. Sandboxed Per-Profile Fixtures | 3/3 | Complete    | 2026-05-24 |
-| 4. Regression Suite & Dry-Run Proof | 2/3 | In Progress|  |
+| 4. Regression Suite & Dry-Run Proof | 3/3 | Complete   | 2026-05-25 |
 | 5. README Demo | 0/TBD | Not started | - |
 | 6. Cost Estimator | 0/TBD | Not started | - |
 | 7. Skill-Firing Telemetry | 0/TBD | Not started | - |
