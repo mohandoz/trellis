@@ -152,7 +152,7 @@ scripts/record-demo.sh
       │        expect eof
       │
       ├─ agg --speed 1.5 --idle-time-limit 2 --theme dracula \
-      │       --cols 120 $CAST_FILE $GIF_FILE
+      │       $CAST_FILE $GIF_FILE
       │
       └─ cp $GIF_FILE .github/assets/demo.gif
 
@@ -535,22 +535,25 @@ Produces approximately 22 lines:
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Prompt pattern in expect**
    - What we know: Standard bash prompt ends in `$ ` but macOS zsh default uses `%` and fish uses `>`
    - What's unclear: Which shell `asciinema rec` spawns inside the expect session (it uses the user's `$SHELL`)
    - Recommendation: Set `PS1='$ '` explicitly as first command in the recorded shell, before the demo commands. This costs ~1 second but makes the expect `expect -re {[\$#]\s*$}` pattern reliable.
+   - RESOLVED: Plan 01 action encodes `send "PS1='$ '\r"` as the first command in the expect heredoc, before any demo commands. Prompt normalization is required.
 
 2. **Where in README.md to place the img tag (exact line)**
    - What we know: `## 🚀 Quickstart` heading is at line 63; code block ends around line 76; `That's it. Run...` is line 78
    - What's unclear: Whether to replace only the three-step code block or also the `That's it.` sentence
    - Recommendation: Replace lines 65–76 (the code block), keep the `That's it.` sentence below the image. This preserves the narrative flow.
+   - RESOLVED: Plan 02 action specifies replace lines 65–74 (the fenced code block), keep `That's it.` sentence. Lines confirmed by PATTERNS.md README edit target.
 
 3. **expect availability on Linux CI (if CI check is ever expanded)**
    - What we know: CI currently uses ubuntu-latest which has `expect` in apt
    - What's unclear: Whether a future contributor will try to regenerate demo in CI
    - Recommendation: Document in a comment in `record-demo.sh` that this script is contributor-only and intentionally absent from CI.
+   - RESOLVED: Plan 01 action includes `# Requires: ... (contributor machine only — not in CI)` in the script header comment block.
 
 ---
 
