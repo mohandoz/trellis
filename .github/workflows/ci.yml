@@ -19,7 +19,7 @@ jobs:
 
       - name: Lint shell scripts
         run: |
-          find cli scripts migrations profiles compliance templates/hooks tests -name '*.sh' \
+          find cli scripts migrations profiles compliance templates/hooks tests lib -name '*.sh' \
             -exec shellcheck -S error -e SC2164,SC2044,SC2034,SC2155 {} +
 
       - name: Validate JSON
