@@ -134,6 +134,7 @@ regen_profile() {
 mkdir -p "$FIXTURES_DIR"
 
 # Main loop
+# shellcheck disable=SC2086
 for p in $PROFILES; do
   if [ -n "$PROFILE_FILTER" ] && [ "$p" != "$PROFILE_FILTER" ]; then
     continue

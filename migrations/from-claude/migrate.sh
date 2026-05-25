@@ -55,6 +55,7 @@ if [ -d "$TARGET/.claude/skills" ]; then
   SKILL_COUNT=$(find "$TARGET/.claude/skills" -name SKILL.md | wc -l | tr -d ' ')
   note "- Found $SKILL_COUNT existing skills."
 
+  # shellcheck disable=SC2046
   for f in $(find "$TARGET/.claude/skills" -name SKILL.md 2>/dev/null); do
     name=$(basename "$(dirname "$f")")
     SLINES=$(wc -l < "$f" | tr -d ' ')
@@ -81,6 +82,7 @@ fi
 if [ -d "$TARGET/.claude/hooks" ]; then
   note ""
   note "## Hooks"
+  # shellcheck disable=SC2046
   for h in $(find "$TARGET/.claude/hooks" -name '*.sh' 2>/dev/null); do
     name=$(basename "$h")
     if [ ! -x "$h" ]; then

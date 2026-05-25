@@ -141,6 +141,7 @@ cmd_update() {
   echo
   echo "▸ Computing diff against current templates..."
   local diff_count=0
+  # shellcheck disable=SC2046
   for f in $(find "$CONJURE_HOME/templates/skills" -name SKILL.md); do
     local rel="${f#$CONJURE_HOME/templates/}"
     local proj="$target/.claude/${rel%/SKILL.md}/SKILL.md"

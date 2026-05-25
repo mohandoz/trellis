@@ -331,6 +331,7 @@ echo "▸ Failure-mode reproductions (TEST-07)"
 # FM-1: CLAUDE.md exceeds 200-line hard cap — audit-setup.sh detects this
 FM_DIR="$(mktemp -d)"
 printf '# SYNTHETIC — size cap test\n' > "$FM_DIR/CLAUDE.md"
+# shellcheck disable=SC2046
 for i in $(seq 1 205); do printf '# filler line %s\n' "$i" >> "$FM_DIR/CLAUDE.md"; done
 FM_OUT="$(bash "$CONJURE_HOME/scripts/audit-setup.sh" "$FM_DIR" 2>&1 || true)"
 if printf '%s\n' "$FM_OUT" | grep -q "HARD CAP exceeded"; then
