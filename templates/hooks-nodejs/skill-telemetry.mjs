@@ -45,18 +45,21 @@ process.stdin.on('end', () => {
   // Defensive null guard — exit silently if skill name could not be determined
   if (!skillName) process.exit(0);
 
+  // Derive safe working directory — p.cwd may be absent for UserPromptExpansion events
+  const cwd = p.cwd ?? process.cwd();
+
   // Build JSONL record — skill name ONLY, never tool arguments (PII risk, D-05)
   const record = JSON.stringify({
     ts: new Date().toISOString(),
     session_id: p.session_id,
     event: eventType,
     skill: skillName,
-    project_cwd: p.cwd
+    project_cwd: cwd
   });
 
   // Write to local log file — fs errors caught silently (telemetry must never block)
   try {
-    const logDir = path.join(p.cwd, '.claude', 'telemetry');
+    const logDir = path.join(cwd, '.claude', 'telemetry');
     mkdirSync(logDir, { recursive: true });
     appendFileSync(path.join(logDir, 'skill-events.jsonl'), record + '\n');
   } catch { /* silent fail */ }
