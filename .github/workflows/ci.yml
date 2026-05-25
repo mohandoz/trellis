@@ -59,8 +59,8 @@ jobs:
       - name: Scaffold fixture
         shell: bash
         run: |
-          mkdir -p /tmp/fixture
-          CONJURE_HOME="$GITHUB_WORKSPACE" cli/conjure init /tmp/fixture
+          mkdir -p "$RUNNER_TEMP/fixture"
+          CONJURE_HOME="$GITHUB_WORKSPACE" cli/conjure init "$RUNNER_TEMP/fixture"
 
       - name: Assert node version
         shell: bash
@@ -68,11 +68,11 @@ jobs:
 
       - name: Assert node hook wiring in settings.json
         shell: bash
-        run: grep 'node' /tmp/fixture/.claude/settings.json
+        run: grep 'node' "$RUNNER_TEMP/fixture/.claude/settings.json"
 
       - name: Assert no bash hook regression
         shell: bash
         run: |
-          if grep 'bash .claude/hooks' /tmp/fixture/.claude/settings.json; then
+          if grep 'bash .claude/hooks' "$RUNNER_TEMP/fixture/.claude/settings.json"; then
             echo "FAIL: bash hook commands found (SAFE-03 regression)" && exit 1
           fi
