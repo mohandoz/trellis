@@ -1,80 +1,46 @@
----
-phase: 2
-slug: dry-run-enforcement-chokepoint
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
-created: 2026-05-24
----
+<!-- Covers: TECH-02b | SAFE-01, SAFE-02, D-04, D-05 -->
+# Phase 02 VALIDATION
 
-# Phase 2 — Validation Strategy
+## Verify --dry-run creates no filesystem artifacts (SAFE-01)
 
-> Per-phase validation contract for feedback sampling during execution.
+```bash
+TMPDIR=$(mktemp -d); trap 'rm -rf "$TMPDIR"' EXIT
+printf '# Test project\n' > "$TMPDIR/CLAUDE.md"
+CONJURE_HOME=$(pwd) cli/conjure init --dry-run "$TMPDIR" >/dev/null 2>&1 || true
+[ -d "$TMPDIR/.claude" ] && echo "FAIL: .claude created" || echo "PASS: no .claude"
+```
 
----
+**Expected:** `PASS: no .claude` — dry-run must not create any filesystem artifacts
 
-## Test Infrastructure
+## Verify [dry-run] prefix lines appear in output (D-04)
 
-| Property | Value |
-|----------|-------|
-| **Framework** | Hand-rolled bash (`tests/run.sh`) — project standard |
-| **Config file** | none — `tests/run.sh` is self-contained |
-| **Quick run command** | `bash tests/run.sh` |
-| **Full suite command** | `bash tests/run.sh` |
-| **Estimated runtime** | ~5 seconds |
+```bash
+TMPDIR=$(mktemp -d); trap 'rm -rf "$TMPDIR"' EXIT
+printf '# Test project\n' > "$TMPDIR/CLAUDE.md"
+CONJURE_HOME=$(pwd) cli/conjure init --dry-run "$TMPDIR" 2>&1 | grep '\[dry-run\]' | head -3
+```
 
----
+**Expected:** one or more lines containing `[dry-run]` — e.g. `[dry-run] would mkdir .claude/skills`
 
-## Sampling Rate
+## Verify mutation count > 0 in dry-run summary line (D-05)
 
-- **After every task commit:** Run `bash tests/run.sh`
-- **After every plan wave:** Run `bash tests/run.sh`
-- **Before `/gsd-verify-work`:** Full suite must be green
-- **Max feedback latency:** 5 seconds
+```bash
+TMPDIR=$(mktemp -d); trap 'rm -rf "$TMPDIR"' EXIT
+printf '# Test project\n' > "$TMPDIR/CLAUDE.md"
+CONJURE_HOME=$(pwd) cli/conjure init --dry-run "$TMPDIR" 2>&1 | grep -E '\[dry-run\] [1-9][0-9]* mutations skipped'
+```
 
----
+**Expected:** line matching `[dry-run] N mutations skipped` where N >= 1
 
-## Per-Task Verification Map
+## Verify lib/mutate.sh DRY_RUN=1 suppresses mkdir and write (SAFE-02)
 
-| Task ID | Plan | Wave | Requirement | Secure Behavior | Test Type | Automated Command | File Exists | Status |
-|---------|------|------|-------------|-----------------|-----------|-------------------|-------------|--------|
-| 2-01-01 | 01 | 1 | SAFE-02 | lib/mutate.sh is sourceable under set -uo pipefail | smoke | `source lib/mutate.sh && echo ok` | ❌ Wave 1 | ⬜ pending |
-| 2-01-02 | 01 | 1 | SAFE-02 | mutate_mkdir/cp/write suppress writes when DRY_RUN=1 | unit | `bash tests/run.sh` | ❌ Wave 1 | ⬜ pending |
-| 2-01-03 | 01 | 1 | SAFE-01 | mutate_* print [dry-run] prefix when DRY_RUN=1 | output | `bash tests/run.sh` | ❌ Wave 1 | ⬜ pending |
-| 2-02-01 | 02 | 2 | SAFE-01 | init-project.sh makes no writes when DRY_RUN=1 | integration | `bash tests/run.sh` | ❌ Wave 2 | ⬜ pending |
-| 2-03-01 | 03 | 2 | SAFE-01 | profiles/*/apply.sh makes no writes when DRY_RUN=1 | integration | `bash tests/run.sh` | ❌ Wave 2 | ⬜ pending |
-| 2-04-01 | 04 | 2 | SAFE-01 | compliance/*/apply.sh makes no writes when DRY_RUN=1 | integration | `bash tests/run.sh` | ❌ Wave 2 | ⬜ pending |
-| 2-05-01 | 05 | 3 | SAFE-01 | cli/conjure exports DRY_RUN before calling init-project.sh | smoke | `bash tests/run.sh` | ❌ Wave 3 | ⬜ pending |
-| 2-06-01 | 06 | 4 | SAFE-01 | conjure init --dry-run leaves target tree byte-identical | integration | `bash tests/run.sh` | ❌ Wave 4 | ⬜ pending |
-| 2-06-02 | 06 | 4 | SAFE-01 | [dry-run] prefixed lines appear in output | output | `bash tests/run.sh` | ❌ Wave 4 | ⬜ pending |
-| 2-06-03 | 06 | 4 | SAFE-02 | mutation count > 0 in summary line | output | `bash tests/run.sh` | ❌ Wave 4 | ⬜ pending |
+```bash
+TMPDIR=$(mktemp -d); trap 'rm -rf "$TMPDIR"' EXIT
+source lib/mutate.sh
+DRY_RUN=1 mutate_mkdir "$TMPDIR/would-not-exist"
+[ -d "$TMPDIR/would-not-exist" ] && echo "FAIL: dir created" || echo "PASS: mkdir suppressed"
+DRY_RUN=1 mutate_write "$TMPDIR/would-not-exist.txt" "content"
+[ -f "$TMPDIR/would-not-exist.txt" ] && echo "FAIL: file written" || echo "PASS: write suppressed"
+```
 
-*Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
-
----
-
-## Wave 0 Requirements
-
-- [ ] `lib/mutate.sh` — must be created in Wave 1 (plan 02-01); tests in Wave 4 depend on it
-- [ ] `tests/run.sh` dry-run section — added in Wave 4 (plan 02-06); requires lib/mutate.sh + all retrofits complete
-
-*Note: This phase uses hand-rolled `tests/run.sh`. Unit-level tests for lib/mutate.sh are self-contained bash assertions inside `tests/run.sh`. Integration tests (02-06) run last after all write sites are wired.*
-
----
-
-## Manual-Only Verifications
-
-| Behavior | Requirement | Why Manual | Test Instructions |
-|----------|-------------|------------|-------------------|
-| Zero mutations confirmed on Windows | SAFE-01 | Requires native Windows environment | Run `conjure init --dry-run .` on native Windows; verify target directory unchanged |
-
----
-
-## Validation Sign-Off
-
-- [ ] All tasks have `<automated>` verify or Wave dependency noted
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING file references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 5s
-- [ ] `nyquist_compliant: true` set in frontmatter
+**Expected:** `PASS: mkdir suppressed` and `PASS: write suppressed`
