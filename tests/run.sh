@@ -1245,6 +1245,42 @@ fi
 # CLEANUP OVLY sandbox
 rm -rf "$OVLY_REPO" "$OVLY_TARGET"
 
+# ──────────────────────────────────────────────────────────────────────────────
+# BREW homebrew tests (BREW-01 through BREW-04)
+# ──────────────────────────────────────────────────────────────────────────────
+echo
+echo "▸ BREW homebrew tests (BREW-01 through BREW-04)"
+
+if ruby -c "$CONJURE_HOME/Formula/conjure.rb" >/dev/null 2>&1; then
+  pass "Formula/conjure.rb: valid Ruby syntax (BREW-01)"
+else
+  fail "Formula/conjure.rb: Ruby syntax error — run: ruby -c Formula/conjure.rb (BREW-01)"
+fi
+
+BREW_FAKE="$(mktemp -d)"
+trap 'rm -rf "$BREW_FAKE"' EXIT
+printf '9.8.7\n' > "$BREW_FAKE/VERSION"
+BREW_VER_OUT="$(CONJURE_HOME="$BREW_FAKE" "$CONJURE_HOME/cli/conjure" version 2>&1)"
+if printf '%s\n' "$BREW_VER_OUT" | grep -q '9.8.7'; then
+  pass "CONJURE_HOME env var overrides default resolution (BREW-02)"
+else
+  fail "CONJURE_HOME env var did NOT override — got: $BREW_VER_OUT (BREW-02)"
+fi
+rm -rf "$BREW_FAKE"
+trap - EXIT
+
+if grep -qE '\bHEAD\b|\bbranch\b' "$CONJURE_HOME/Formula/conjure.rb" 2>/dev/null; then
+  fail "Formula/conjure.rb contains HEAD or branch reference — must use tagged tarball URL (BREW-03)"
+else
+  pass "Formula/conjure.rb: no HEAD or branch reference (BREW-03)"
+fi
+
+if grep -q 'bump-homebrew-formula-action' "$CONJURE_HOME/.github/workflows/release.yml" 2>/dev/null; then
+  pass "release.yml references bump-homebrew-formula-action (BREW-04)"
+else
+  fail "release.yml missing bump-homebrew-formula-action reference (BREW-04)"
+fi
+
 # Summary
 echo
 echo "═══════════════════════════════════════════════════════════════════"
