@@ -24,7 +24,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 3: Sandboxed Per-Profile Fixtures** - Committed, hermetic example project per stack profile plus one intentionally-failing fixture (completed 2026-05-24)
 - [x] **Phase 4: Regression Suite & Dry-Run Proof** - Golden-file fixture loop, byte-identical dry-run snapshot assertion, failure-mode reproductions, and a Windows CI leg (completed 2026-05-25)
 - [x] **Phase 5: README Demo** - asciinema→GIF demo of `conjure init` + `conjure audit` recorded against safe dry-run (completed 2026-05-25)
-- [ ] **Phase 6: Cost Estimator** - `conjure audit --cost` offline token/dollar estimate with an explicit ±band, plus opt-in `--exact`
+- [x] **Phase 6: Cost Estimator** - `conjure audit --cost` offline token/dollar estimate with an explicit ±band, plus opt-in `--exact` (completed 2026-05-25)
 - [ ] **Phase 7: Skill-Firing Telemetry** - Opt-in, local-only, PII-free skill telemetry feeding a retire-list, with an enforced no-egress test
 
 ## Phase Details
@@ -158,7 +158,7 @@ Plans:
 - [x] 06-02-PLAN.md — Implement cost section in scripts/audit-setup.sh: CONJURE_HOME self-derivation, jq price read, per-file breakdown table, --exact integration, label line (COST-01, COST-02, COST-03)
 
 **Wave 3** *(blocked on 06-01 and 06-02)*
-- [ ] 06-03-PLAN.md — Extend tests/run.sh with cost estimator test section and lib/prices.json in JSON validity loop (COST-01, COST-02, COST-03)
+- [x] 06-03-PLAN.md — Extend tests/run.sh with cost estimator test section and lib/prices.json in JSON validity loop (COST-01, COST-02, COST-03)
 
 ### Phase 7: Skill-Firing Telemetry
 **Goal**: Conjure ships local-only, opt-in skill telemetry that produces a retire-list signal while making it provably impossible to phone home — turning "telemetry" into a trust asset
@@ -189,5 +189,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 | 3. Sandboxed Per-Profile Fixtures | 3/3 | Complete    | 2026-05-24 |
 | 4. Regression Suite & Dry-Run Proof | 3/3 | Complete    | 2026-05-25 |
 | 5. README Demo | 2/2 | Complete    | 2026-05-25 |
-| 6. Cost Estimator | 2/3 | In Progress|  |
+| 6. Cost Estimator | 3/3 | Complete   | 2026-05-25 |
 | 7. Skill-Firing Telemetry | 0/TBD | Not started | - |
