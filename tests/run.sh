@@ -181,6 +181,39 @@ if grep -v '^#' scripts/init-project.sh 2>/dev/null | grep -q 'chmod.*hooks'; th
 else pass "init-project.sh: no chmod on hook files"
 fi
 
+echo
+echo "▸ Dry-run enforcement (SAFE-01, SAFE-02)"
+
+TMPDIR_TARGET="$(mktemp -d)"
+trap 'rm -rf "$TMPDIR_TARGET"' EXIT
+
+# Create a minimal CLAUDE.md so profile/compliance fragments have something to append to
+printf '# Test project\n' > "$TMPDIR_TARGET/CLAUDE.md"
+
+# Run conjure init --dry-run against the temp dir
+DRY_OUT="$(CONJURE_HOME="$CONJURE_HOME" cli/conjure init --dry-run "$TMPDIR_TARGET" 2>&1 || true)"
+
+# SAFE-01 assertion: .claude/ must NOT be created
+if [ -d "$TMPDIR_TARGET/.claude" ]; then
+  fail "dry-run: .claude/ was created (filesystem mutated — SAFE-01)"
+else
+  pass "dry-run: .claude/ not created (SAFE-01)"
+fi
+
+# SAFE-01 / D-04 assertion: [dry-run] prefix lines must appear in output
+if printf '%s' "$DRY_OUT" | grep -q "\[dry-run\]"; then
+  pass "dry-run: [dry-run] prefix lines present in output (D-04)"
+else
+  fail "dry-run: no [dry-run] lines in output (D-04)"
+fi
+
+# D-05 assertion: mutation count > 0 in summary line
+if printf '%s' "$DRY_OUT" | grep -qE "\[dry-run\] [1-9][0-9]* mutations skipped"; then
+  pass "dry-run: mutation count > 0 in summary line (D-05)"
+else
+  fail "dry-run: summary line missing or count is 0 (D-05)"
+fi
+
 # Migration scripts exist for every documented source
 echo
 echo "▸ Migration coverage"
