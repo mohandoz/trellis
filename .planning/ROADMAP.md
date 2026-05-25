@@ -64,7 +64,13 @@ Plans:
   2. CI fails on any PR where `version` in `marketplace.json` or `plugin.json` does not match the `VERSION` file
   3. CI runs `claude plugin validate .` on every PR and fails on schema errors
   4. User can run `conjure publish --submit` and receive a checklist + PR URL for submitting to `anthropics/claude-plugins-community`
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+- [x] 10-01-PLAN.md — Restructure .claude-plugin/marketplace.json + plugin.json to pass `claude plugin validate` (MKTPL-01)
+- [ ] 10-02-PLAN.md — Create scripts/publish-plugin.sh + cmd_publish dispatch in cli/conjure (MKTPL-01, MKTPL-04)
+- [ ] 10-03-PLAN.md — Add version-consistency check + claude CLI install + plugin validate steps to ci.yml (MKTPL-02, MKTPL-03)
+- [ ] 10-04-PLAN.md — Inline MKTPL regression tests in tests/run.sh (MKTPL-01, MKTPL-02, MKTPL-04)
 
 ### Phase 11: Skill Publishing
 **Goal**: A developer can contribute a project skill to the public kit (or a private org kit) through a single command that validates safety and opens a PR
@@ -127,7 +133,7 @@ Plans:
 |-------|-----------|----------------|--------|-----------|
 | 08. Nyquist Compliance Backfill | v0.4.0 | 3/3 | Complete    | 2026-05-25 |
 | 09. 3-Way Merge | v0.4.0 | 3/3 | Complete    | 2026-05-25 |
-| 10. Marketplace Publish | v0.4.0 | 0/TBD | Not started | - |
+| 10. Marketplace Publish | v0.4.0 | 1/4 | In Progress|  |
 | 11. Skill Publishing | v0.4.0 | 0/TBD | Not started | - |
 | 12. Org Overlay | v0.4.0 | 0/TBD | Not started | - |
 | 13. Homebrew Tap | v0.4.0 | 0/TBD | Not started | - |
