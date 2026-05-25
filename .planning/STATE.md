@@ -2,16 +2,15 @@
 gsd_state_version: 1.0
 milestone: v0.4.0
 milestone_name: Distribution + Ecosystem
-status: ready_to_plan
-last_updated: 2026-05-25T22:48:34.643Z
-last_activity: 2026-05-25 -- Phase 12 execution started
+status: executing
+last_updated: "2026-05-25T23:27:57.225Z"
+last_activity: 2026-05-25 -- Phase 13 execution started
 progress:
   total_phases: 8
-  completed_phases: 4
-  total_plans: 15
-  completed_plans: 37
-  percent: 50
-stopped_at: Phase 11 complete (2/2) — ready to discuss Phase 12
+  completed_phases: 5
+  total_plans: 18
+  completed_plans: 15
+  percent: 63
 ---
 
 # Project State
@@ -21,14 +20,14 @@ stopped_at: Phase 11 complete (2/2) — ready to discuss Phase 12
 See: .planning/PROJECT.md (updated 2026-05-25)
 
 **Core value:** A developer can turn any repo into a production-grade, eval-backed Claude Code harness with one trustworthy command — and keep it healthy over time.
-**Current focus:** Phase 12 — org overlay
+**Current focus:** Phase 13 — homebrew-tap
 
 ## Current Position
 
-Phase: 12
-Plan: Not started
-Status: Ready to plan
-Last activity: 2026-05-25
+Phase: 13 (homebrew-tap) — EXECUTING
+Plan: 1 of 3
+Status: Executing Phase 13
+Last activity: 2026-05-25 -- Phase 13 execution started
 
 Progress: [██████████] 100%
 
