@@ -62,7 +62,8 @@ cmd_init() {
     shift
   done
   DRY_RUN="$dryrun"
-  source "$CONJURE_HOME/lib/mutate.sh"
+  source "$CONJURE_HOME/lib/mutate.sh" \
+    || { echo "✗ Failed to load lib/mutate.sh — check CONJURE_HOME ($CONJURE_HOME)"; return 1; }
 
   echo "▸ conjure init: mode=$mode profile=${profile:-none} target=$target dry_run=$dryrun"
 
