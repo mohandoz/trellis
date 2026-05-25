@@ -93,16 +93,43 @@
 
 | REQ-ID | Phase | Plan | Status |
 |--------|-------|------|--------|
-| TECH-02a–f | — | — | — |
-| TECH-03 | — | — | — |
-| MERGE-01–05 | — | — | — |
-| MKTPL-01–04 | — | — | — |
-| SKILL-01–04 | — | — | — |
-| OVLY-01–05 | — | — | — |
-| BREW-01–04 | — | — | — |
-| DOCK-01–05 | — | — | — |
-| REL-01–02 | — | — | — |
+| TECH-02a | Phase 08 | TBD | Pending |
+| TECH-02b | Phase 08 | TBD | Pending |
+| TECH-02c | Phase 08 | TBD | Pending |
+| TECH-02d | Phase 08 | TBD | Pending |
+| TECH-02e | Phase 08 | TBD | Pending |
+| TECH-02f | Phase 08 | TBD | Pending |
+| MERGE-01 | Phase 09 | TBD | Pending |
+| MERGE-02 | Phase 09 | TBD | Pending |
+| MERGE-03 | Phase 09 | TBD | Pending |
+| MERGE-04 | Phase 09 | TBD | Pending |
+| MERGE-05 | Phase 09 | TBD | Pending |
+| MKTPL-01 | Phase 10 | TBD | Pending |
+| MKTPL-02 | Phase 10 | TBD | Pending |
+| MKTPL-03 | Phase 10 | TBD | Pending |
+| MKTPL-04 | Phase 10 | TBD | Pending |
+| SKILL-01 | Phase 11 | TBD | Pending |
+| SKILL-02 | Phase 11 | TBD | Pending |
+| SKILL-03 | Phase 11 | TBD | Pending |
+| SKILL-04 | Phase 11 | TBD | Pending |
+| OVLY-01 | Phase 12 | TBD | Pending |
+| OVLY-02 | Phase 12 | TBD | Pending |
+| OVLY-03 | Phase 12 | TBD | Pending |
+| OVLY-04 | Phase 12 | TBD | Pending |
+| OVLY-05 | Phase 12 | TBD | Pending |
+| BREW-01 | Phase 13 | TBD | Pending |
+| BREW-02 | Phase 13 | TBD | Pending |
+| BREW-03 | Phase 13 | TBD | Pending |
+| BREW-04 | Phase 13 | TBD | Pending |
+| DOCK-01 | Phase 14 | TBD | Pending |
+| DOCK-02 | Phase 14 | TBD | Pending |
+| DOCK-03 | Phase 14 | TBD | Pending |
+| DOCK-04 | Phase 14 | TBD | Pending |
+| DOCK-05 | Phase 14 | TBD | Pending |
+| TECH-03 | Phase 14 | TBD | Pending |
+| REL-01 | Phase 15 | TBD | Pending |
+| REL-02 | Phase 15 | TBD | Pending |
 
 ---
 
-*Total requirements: 29 active | 4 future | 5 out of scope*
+*Total requirements: 29 active (36 req-IDs when TECH-02a–f counted individually) | 4 future | 5 out of scope*

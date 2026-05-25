@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v0.4.0
 milestone_name: Distribution + Ecosystem
 status: planning
-last_updated: "2026-05-25T13:40:09.415Z"
+last_updated: "2026-05-25"
 last_activity: 2026-05-25
 progress:
-  total_phases: 0
+  total_phases: 8
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -17,37 +17,34 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-05-24)
+See: .planning/PROJECT.md (updated 2026-05-25)
 
 **Core value:** A developer can turn any repo into a production-grade, eval-backed Claude Code harness with one trustworthy command — and keep it healthy over time.
-**Current focus:** Milestone complete
+**Current focus:** Phase 08 — Nyquist Compliance Backfill (not yet started)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-05-25 — Milestone v0.4.0 started
+Phase: 08 of 15 (Nyquist Compliance Backfill)
+Plan: — of —
+Status: Ready to plan
+Last activity: 2026-05-25 — v0.4.0 roadmap created (Phases 08–15)
+
+Progress: [░░░░░░░░░░] 0%
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 22
+- Total plans completed: 22 (from v0.3.0)
 - Average duration: — min
-- Total execution time: 0.0 hours
+- Total execution time: —
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 01 | 2 | - | - |
-| 02 | 6 | - | - |
-| 03 | 3 | - | - |
-| 04 | 3 | - | - |
-| 05 | 2 | - | - |
-| 06 | 3 | - | - |
-| 07 | 3 | - | - |
+| v0.3.0 phases 01–07 | 22 | - | - |
+| v0.4.0 phases 08–15 | TBD | - | - |
 
 **Recent Trend:**
 
@@ -55,45 +52,37 @@ Last activity: 2026-05-25 — Milestone v0.4.0 started
 - Trend: —
 
 *Updated after each plan completion*
-| Phase 01 P02 | 2 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
 ### Decisions
 
-Decisions are logged in PROJECT.md Key Decisions table.
-Recent decisions affecting current work:
-
-- [Milestone scope]: v0.3.0 = Testing + telemetry; quality/trust precede distribution (v0.4.0 deferred)
-- [Architecture]: All writes funnel through a single `lib/mutate.sh` chokepoint so dry-run is enforced once, not per call site
-- [Telemetry]: Local-only, opt-in, PII-free by design; no-egress is an enforced CI test, not a promise
-- [Phase ?]: D-01/D-02: node .mjs commands used universally in settings template with relative paths — no OS branching, no shell arg expansion
+- [v0.3.0 scope]: Quality/trust precede distribution; all writes through `lib/mutate.sh` chokepoint
+- [v0.4.0 ordering]: Nyquist backfill first, then 3-way merge (deepest logic), then distribution channels
+- [Docker base]: debian:bookworm-slim (not Alpine) to avoid musl libc breaks for optional Go/Rust tools
+- [Homebrew]: Separate tap repo `mohandoz/homebrew-conjure`; formula pinned to tagged tarball SHA256 only
 
 ### Pending Todos
-
-[From .planning/todos/pending/ — ideas captured during sessions]
 
 None yet.
 
 ### Blockers/Concerns
 
-[Issues that affect future work]
-
-- [Phase 7]: Exact Claude Code skill-load hook event name/shape is unverified against installed CC ≥2.1.117 — must confirm at phase-research time; coarse `SessionStart`/`Stop` fallback required.
-- [Phase 1/2]: Two live bugs in the working tree (`--dry-run` mutates disk; `templates/settings.json.tmpl` hardwires bash hooks, dead on native Windows) — front-loaded as Phases 1–2 because all downstream work depends on a trustworthy `init`.
+- [Phase 12]: Overlay version compatibility contract (`compatible-kit-version`) deferred to v0.4.x — define during OVLY implementation before first overlay ships in production
+- [Phase 13]: Run `brew search conjure` before Phase 13 formula work to check for name collision; fallback names are `conjure-kit` or `conjure-claude`
+- [Phase 09]: Non-git installs (Homebrew tarball) will not have `.conjure-templates-<version>/` unless snapshot is written at init time — must decide on snapshot strategy before merge implementation
 
 ## Deferred Items
 
-Items acknowledged and carried forward from previous milestone close:
-
 | Category | Item | Status | Deferred At |
 |----------|------|--------|-------------|
-| Distribution | Marketplace / Homebrew / Docker / publish-skill (DIST-01..05) | Deferred to v0.4.0 | v0.3.0 scoping |
-| Cost | Bundled offline Claude tokenizer | Out of scope (no accurate tokenizer) | v0.3.0 scoping |
-| Testing | Full 9×4 profile×overlay fixture matrix | Out of scope (representative pairs only) | v0.3.0 scoping |
+| Docker | `conjure:full` tag with optional Go/Rust tools | Deferred to v0.4.x | v0.4.0 scoping |
+| Windows | PowerShell `conjure.ps1` entrypoint (no Git Bash) | Deferred to v0.5.0 | v0.4.0 scoping |
+| Overlay | `compatible-kit-version` manifest field | Deferred to v0.4.x | v0.4.0 scoping |
+| Publish | `--dry-run` for `conjure publish` / `publish-skill` | Deferred | v0.4.0 scoping |
 
 ## Session Continuity
 
-Last session: 2026-05-25T10:16:53.422Z
-Stopped at: Phase 7 context gathered
-Resume file: .planning/phases/07-skill-firing-telemetry/07-CONTEXT.md
+Last session: 2026-05-25
+Stopped at: Roadmap created for v0.4.0 (Phases 08–15); ready to plan Phase 08
+Resume file: None
