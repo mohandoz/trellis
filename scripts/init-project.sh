@@ -42,12 +42,11 @@ else
   echo "  • .claude/settings.json exists — skipping"
 fi
 
-# 4. Copy hooks (executable)
-for hook in "$KIT"/templates/hooks/*.sh; do
+# 4. Copy hooks (node .mjs — works on all platforms including Windows)
+for hook in "$KIT"/templates/hooks-nodejs/*.mjs; do
   name=$(basename "$hook")
   if [ ! -f ".claude/hooks/$name" ]; then
     cp "$hook" ".claude/hooks/$name"
-    chmod +x ".claude/hooks/$name"
     echo "  ✓ created .claude/hooks/$name"
   fi
 done

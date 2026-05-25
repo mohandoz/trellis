@@ -45,7 +45,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash .claude/hooks/post-edit-format.sh \"$CLAUDE_FILE_PATH\""
+            "command": "node .claude/hooks/post-edit-format.mjs"
           }
         ]
       }
@@ -56,7 +56,11 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash .claude/hooks/pre-bash-block-destructive.sh \"$CLAUDE_COMMAND\""
+            "command": "node .claude/hooks/pre-bash-block-destructive.mjs"
+          },
+          {
+            "type": "command",
+            "command": "node .claude/hooks/pre-commit-quality-gate.mjs"
           }
         ]
       }
@@ -66,7 +70,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash .claude/hooks/stop-compound-engineering.sh"
+            "command": "node .claude/hooks/stop-compound-engineering.mjs"
           }
         ]
       }
@@ -76,7 +80,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash .claude/hooks/session-start-context.sh"
+            "command": "node .claude/hooks/session-start-context.mjs"
           }
         ]
       }
