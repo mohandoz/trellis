@@ -119,7 +119,19 @@ Plans:
   4. `conjure audit` reports overlay presence, the pinned SHA, and any drift from the currently checked-out overlay HEAD
   5. Overlay authentication uses the user's existing git credential store; no credentials are stored by Conjure
 
-**Plans**: TBD
+**Plans**: 3 plans
+
+**Wave 1**
+
+- [ ] 12-01-PLAN.md — Create scripts/init-overlay.sh (clone + apply) and scripts/refresh-overlay.sh (re-pull + re-apply) (OVLY-01, OVLY-02, OVLY-03, OVLY-05)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 12-02-PLAN.md — Extend cli/conjure (--overlay flag, cmd_refresh_overlay, dispatch) + overlay section in scripts/audit-setup.sh (OVLY-01, OVLY-03, OVLY-04, OVLY-05)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 12-03-PLAN.md — Add OVLY-01..OVLY-05 regression tests in tests/run.sh (OVLY-01, OVLY-02, OVLY-03, OVLY-04, OVLY-05)
 
 ### Phase 13: Homebrew Tap
 
@@ -170,7 +182,7 @@ Plans:
 | 09. 3-Way Merge | v0.4.0 | 3/3 | Complete    | 2026-05-25 |
 | 10. Marketplace Publish | v0.4.0 | 4/4 | Complete    | 2026-05-25 |
 | 11. Skill Publishing | v0.4.0 | 0/2 | Not started | - |
-| 12. Org Overlay | v0.4.0 | 0/TBD | Not started | - |
+| 12. Org Overlay | v0.4.0 | 0/3 | Not started | - |
 | 13. Homebrew Tap | v0.4.0 | 0/TBD | Not started | - |
 | 14. Docker + Windows CI | v0.4.0 | 0/TBD | Not started | - |
 | 15. Release Pipeline | v0.4.0 | 0/TBD | Not started | - |
