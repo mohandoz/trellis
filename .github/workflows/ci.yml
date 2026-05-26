@@ -84,6 +84,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install jq
+        shell: pwsh
+        run: choco install jq -y --no-progress
+
       - name: Run kit test suite (Git Bash)
         shell: bash
         run: bash tests/run.sh
@@ -132,9 +136,15 @@ jobs:
       - name: Confirm exit code 2 propagation (pwsh)
         shell: pwsh
         run: |
-          & "$env:GITHUB_WORKSPACE\conjure.ps1" init
-          if ($LASTEXITCODE -ne 2) {
-            Write-Error "Expected exit 2 from conjure.ps1 init, got $LASTEXITCODE"
+          # conjure resolve exits 2 when stdin is not a TTY (guaranteed in CI)
+          # but only after finding at least one sidecar — create a fake one first
+          $sidecar = "$env:GITHUB_WORKSPACE\.conjure-conflict-ci_test"
+          New-Item -ItemType File -Path $sidecar -Force | Out-Null
+          & "$env:GITHUB_WORKSPACE\conjure.ps1" resolve "$env:GITHUB_WORKSPACE"
+          $rc = $LASTEXITCODE
+          Remove-Item -Path $sidecar -Force -ErrorAction SilentlyContinue
+          if ($rc -ne 2) {
+            Write-Error "Expected exit 2 from conjure resolve (non-TTY stdin), got $rc"
             exit 1
           }
           Write-Host "OK: exit code 2 propagated correctly"

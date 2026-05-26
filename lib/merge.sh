@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 # lib/merge.sh — 3-way merge for cmd_update --apply.
 # Source this file; requires lib/mutate.sh already sourced and DRY_RUN set.
 # POSIX bash 3.2+. No associative arrays, no mapfile, no local -n.

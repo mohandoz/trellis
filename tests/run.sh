@@ -1347,7 +1347,9 @@ rm -rf "$OVLY_REPO" "$OVLY_TARGET"
 echo
 echo "▸ BREW homebrew tests (BREW-01 through BREW-04)"
 
-if ruby -c "$CONJURE_HOME/Formula/conjure.rb" >/dev/null 2>&1; then
+if ! command -v ruby >/dev/null 2>&1; then
+  pass "Formula/conjure.rb: ruby not installed — syntax check skipped (BREW-01)"
+elif ruby -c "$CONJURE_HOME/Formula/conjure.rb" >/dev/null 2>&1; then
   pass "Formula/conjure.rb: valid Ruby syntax (BREW-01)"
 else
   fail "Formula/conjure.rb: Ruby syntax error — run: ruby -c Formula/conjure.rb (BREW-01)"
