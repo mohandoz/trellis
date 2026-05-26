@@ -75,7 +75,10 @@ Plans:
   2. Running `conjure resolve` in a non-interactive environment (piped stdin) exits 2 with a clear error message
   3. After a user confirms a resolution, the sidecar file is removed via `mutate_rm` (dry-run safe)
   4. When all sidecars are cleared, `conjure resolve` prints "No conflicts remain" and exits 0
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 18-01-PLAN.md — Create scripts/resolve.sh worker (sidecar walker, prompt loop, mutate_rm)
+- [ ] 18-02-PLAN.md — Wire cmd_resolve in cli/conjure + RESOLVE regression tests in tests/run.sh
 
 ### Phase 19: Auto-PR
 **Goal**: Users can automate harness-update PRs on demand or via a scheduled GitHub Action without manual git operations
@@ -106,7 +109,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 16. Prerequisites | 2/2 | Complete   | 2026-05-26 |
 | 17. Drift Detection | 2/2 | Complete   | 2026-05-26 |
-| 18. Conflict Resolution | 0/TBD | Not started | - |
+| 18. Conflict Resolution | 0/2 | Not started | - |
 | 19. Auto-PR | 0/TBD | Not started | - |
 | 20. Windows + CI Gate | 0/TBD | Not started | - |
 
