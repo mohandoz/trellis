@@ -620,22 +620,22 @@ The following 35 files are the complete kit manifest for Phase 17. [VERIFIED: co
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Should `CLAUDE.md` be in scope?**
    - What we know: `templates/CLAUDE.md.tmpl` exists but its content is meant to be fully replaced by user content
    - What's unclear: Would comparing it produce useful signal or constant noise?
-   - Recommendation: Exclude from Phase 17 (follows CONTEXT.md which doesn't mention it in kit manifest); revisit if users request it
+   - RESOLVED: Exclude from Phase 17 (follows CONTEXT.md which doesn't mention it in kit manifest); revisit if users request it
 
 2. **Should `docs/*.md` files be in scope?**
    - What we know: Installed from `.md.tmpl` sources via straight copy; users are expected to modify these
    - What's unclear: Whether upstream doc updates are meaningful enough to track
-   - Recommendation: Exclude from Phase 17; keep scope to `.claude/` + root dotfiles
+   - RESOLVED: Exclude from Phase 17; keep scope to `.claude/` + root dotfiles
 
 3. **Should `--porcelain` suppress the "R" for intentionally-removed files?**
    - What we know: CONTEXT.md says "removed" means in kit, not in harness; Phase 17 has no mechanism to distinguish intentional removal from accidental deletion
    - What's unclear: Whether CI users will find "R" lines noisy for intentionally-removed files
-   - Recommendation: Implement as specified (always report R); the v0.5.x base-snapshot feature will handle this
+   - RESOLVED: Implement as specified (always report R); the v0.5.x base-snapshot feature will handle this
 
 ---
 
