@@ -1,0 +1,23 @@
+# Conjure Docker build context exclusions
+.planning/
+tests/output/
+tests/tmp/
+.git/
+.github/
+Formula/
+examples/
+reference/
+checklists/
+*.gif
+CHANGELOG.md
+CODE_OF_CONDUCT.md
+CODEOWNERS
+COMPARISON.md
+CONTRIBUTING.md
+FAILURE-MODES.md
+MIGRATION-GUIDE.md
+PROMPT.md
+SECURITY.md
+SUPPORT.md
+TELEMETRY.md
+install.sh
