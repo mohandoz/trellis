@@ -210,3 +210,13 @@ Plans:
 
 - v0.5.0 — Auto-update drift detector, auto-PR bot (needs frozen schemas first)
 - v0.6.0 — Workspace / cross-repo graph orchestration (single-repo correctness first)
+
+### Phase 15.1: Fix release.yml Docker+Homebrew coupling (INSERTED)
+
+**Goal:** [Urgent work - to be planned]
+**Requirements**: TBD
+**Depends on:** Phase 15
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 15.1 to break down)
