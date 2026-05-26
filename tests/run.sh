@@ -960,7 +960,7 @@ skill_run() {
 }
 
 # SKILL-01: dry-run output
-SKILL_OUT="$(DRY_RUN=1 skill_run test-skill 2>&1)"
+SKILL_OUT="$(DRY_RUN=1 skill_run test-skill myorg/myrepo 2>&1)"
 if printf '%s\n' "$SKILL_OUT" | grep -q 'dry-run'; then
   pass "publish-skill --dry-run prints dry-run accounting (SKILL-01)"
 else
@@ -971,7 +971,7 @@ fi
 python3 -c "print('---\nname: test-skill\ndescription: A test skill that demonstrates the publish-skill validation pipeline end-to-end.\n---'); [print('line') for _ in range(200)]" \
   > "$SKILL_DIR/.claude/skills/test-skill/SKILL.md"
 SIZE_RC=0
-skill_run test-skill >/dev/null 2>&1 || SIZE_RC=$?
+skill_run test-skill myorg/myrepo >/dev/null 2>&1 || SIZE_RC=$?
 if [ "$SIZE_RC" -eq 1 ]; then
   pass "publish-skill exits 1 when skill exceeds 200-line cap (SKILL-01)"
 else
@@ -983,7 +983,7 @@ git -C "$SKILL_DIR" checkout -- .claude/skills/test-skill/SKILL.md
 printf -- '---\ndescription: A test skill that demonstrates the publish-skill validation pipeline end-to-end.\n---\n\n# test-skill\nContent.\n' \
   > "$SKILL_DIR/.claude/skills/test-skill/SKILL.md"
 NONAME_RC=0
-skill_run test-skill >/dev/null 2>&1 || NONAME_RC=$?
+skill_run test-skill myorg/myrepo >/dev/null 2>&1 || NONAME_RC=$?
 if [ "$NONAME_RC" -eq 1 ]; then
   pass "publish-skill exits 1 when frontmatter missing name (SKILL-01)"
 else
@@ -995,7 +995,7 @@ git -C "$SKILL_DIR" checkout -- .claude/skills/test-skill/SKILL.md
 printf -- '---\nname: test-skill\ndescription: A test skill that demonstrates the publish-skill validation pipeline end-to-end.\n---\n\ncurl https://example.com\n' \
   > "$SKILL_DIR/.claude/skills/test-skill/SKILL.md"
 CURL_RC=0
-skill_run test-skill >/dev/null 2>&1 || CURL_RC=$?
+skill_run test-skill myorg/myrepo >/dev/null 2>&1 || CURL_RC=$?
 if [ "$CURL_RC" -eq 1 ]; then
   pass "publish-skill exits 1 when body contains curl (SKILL-01)"
 else
@@ -1007,7 +1007,7 @@ git -C "$SKILL_DIR" checkout -- .claude/skills/test-skill/SKILL.md
 printf -- '---\nname: test-skill\ndescription: A test skill that demonstrates the publish-skill validation pipeline end-to-end.\n---\n\necho $SECRET\n' \
   > "$SKILL_DIR/.claude/skills/test-skill/SKILL.md"
 SECRET_RC=0
-skill_run test-skill >/dev/null 2>&1 || SECRET_RC=$?
+skill_run test-skill myorg/myrepo >/dev/null 2>&1 || SECRET_RC=$?
 if [ "$SECRET_RC" -eq 1 ]; then
   pass "publish-skill exits 1 when body contains \$SECRET (SKILL-01)"
 else
@@ -1017,7 +1017,7 @@ git -C "$SKILL_DIR" checkout -- .claude/skills/test-skill/SKILL.md
 
 # SKILL-01: clean skill passes all gates
 CLEAN_RC=0
-skill_run test-skill >/dev/null 2>&1 || CLEAN_RC=$?
+skill_run test-skill myorg/myrepo >/dev/null 2>&1 || CLEAN_RC=$?
 if [ "$CLEAN_RC" -eq 0 ]; then
   pass "publish-skill exits 0 for valid clean skill (SKILL-01)"
 else
@@ -1030,7 +1030,7 @@ printf '#!/bin/sh\nexit 0\n' > "$STUB_BIN/gh"
 chmod +x "$STUB_BIN/gh"
 SAVED_PATH="$PATH"
 PATH="$STUB_BIN:$PATH"
-GH_PRESENT_OUT="$(skill_run test-skill 2>&1)"
+GH_PRESENT_OUT="$(skill_run test-skill myorg/myrepo 2>&1)"
 PATH="$SAVED_PATH"
 rm -rf "$STUB_BIN"
 if printf '%s\n' "$GH_PRESENT_OUT" | grep -q 'gh pr create'; then
@@ -1052,7 +1052,7 @@ if [ -n "$GH_LOC" ]; then
     *) FILTERED_PATH="${GIT_LOC_DIR}:${FILTERED_PATH}" ;;
   esac
 fi
-NOGH_OUT="$(PATH="$FILTERED_PATH" skill_run test-skill 2>&1)"
+NOGH_OUT="$(PATH="$FILTERED_PATH" skill_run test-skill myorg/myrepo 2>&1)"
 PATH="$SAVED_PATH2"
 if printf '%s\n' "$NOGH_OUT" | grep -qE 'manually|github\.com'; then
   pass "publish-skill prints manual URL when gh is absent (SKILL-02)"
@@ -1063,13 +1063,13 @@ fi
 # SKILL-03: dirty skill tree → exit 1
 echo "dirty" >> "$SKILL_DIR/.claude/skills/test-skill/SKILL.md"
 DIRTY_RC=0
-skill_run test-skill >/dev/null 2>&1 || DIRTY_RC=$?
+skill_run test-skill myorg/myrepo >/dev/null 2>&1 || DIRTY_RC=$?
 if [ "$DIRTY_RC" -eq 1 ]; then
   pass "publish-skill exits 1 on dirty skill tree (SKILL-03)"
 else
   fail "publish-skill did not exit 1 on dirty skill tree — got rc=$DIRTY_RC (SKILL-03)"
 fi
-DIRTY_MSG="$(skill_run test-skill 2>&1 || true)"
+DIRTY_MSG="$(skill_run test-skill myorg/myrepo 2>&1 || true)"
 if printf '%s\n' "$DIRTY_MSG" | grep -q 'uncommitted'; then
   pass "publish-skill prints 'uncommitted' message on dirty tree (SKILL-03)"
 else
@@ -1090,8 +1090,8 @@ git -C "$UNTAGGED_DIR" add -A
 git -C "$UNTAGGED_DIR" commit -q -m "no tag"
 # Intentionally no git tag — this is the untagged conjure scenario
 UNTAGGED_RC=0
-( cd "$SKILL_DIR" && bash "$UNTAGGED_DIR/scripts/publish-skill.sh" test-skill >/dev/null 2>&1 ) || UNTAGGED_RC=$?
-UNTAGGED_MSG="$( ( cd "$SKILL_DIR" && bash "$UNTAGGED_DIR/scripts/publish-skill.sh" test-skill ) 2>&1 || true )"
+( cd "$SKILL_DIR" && bash "$UNTAGGED_DIR/scripts/publish-skill.sh" test-skill myorg/myrepo >/dev/null 2>&1 ) || UNTAGGED_RC=$?
+UNTAGGED_MSG="$( ( cd "$SKILL_DIR" && bash "$UNTAGGED_DIR/scripts/publish-skill.sh" test-skill myorg/myrepo ) 2>&1 || true )"
 if [ "$UNTAGGED_RC" -eq 1 ]; then
   pass "publish-skill exits 1 when conjure HEAD is untagged (SKILL-03)"
 else
@@ -1110,6 +1110,60 @@ if printf '%s\n' "$TO_OUT" | grep -q 'myorg/myrepo'; then
   pass "--to flag substitutes target repo in PR instructions (SKILL-04)"
 else
   fail "--to flag did not substitute target repo (SKILL-04)"
+fi
+
+echo ""
+echo "▸ SKILL-05: positional arg + deprecation (DEBT-02)"
+
+# SKILL-05a: positional $2 sets target repo in PR instructions
+P2_OUT="$(skill_run test-skill myorg/myrepo 2>&1)"
+if printf '%s\n' "$P2_OUT" | grep -q 'myorg/myrepo'; then
+  pass "positional \$2 sets target repo (SKILL-05a)"
+else
+  fail "positional \$2 did not appear in PR instructions (SKILL-05a)"
+fi
+
+# SKILL-05b: TARGET_REPO env emits deprecation WARN to stderr; command still exits 0
+DEPR_ERR="$(TARGET_REPO=myorg/myrepo skill_run test-skill 2>&1 1>/dev/null)"
+if printf '%s\n' "$DEPR_ERR" | grep -q 'WARN: TARGET_REPO'; then
+  pass "TARGET_REPO env emits deprecation WARN (SKILL-05b)"
+else
+  fail "TARGET_REPO env did not emit deprecation WARN (SKILL-05b)"
+fi
+DEPR_RC=0
+TARGET_REPO=myorg/myrepo skill_run test-skill >/dev/null 2>&1 || DEPR_RC=$?
+if [ "$DEPR_RC" -eq 0 ]; then
+  pass "TARGET_REPO env path still exits 0 (SKILL-05b)"
+else
+  fail "TARGET_REPO env path exited $DEPR_RC instead of 0 (SKILL-05b)"
+fi
+
+# SKILL-05c: missing $2 and no TARGET_REPO env → exit 2 with usage line
+MISS_RC=0
+skill_run test-skill >/dev/null 2>&1 || MISS_RC=$?
+if [ "$MISS_RC" -eq 2 ]; then
+  pass "missing \$2 and no TARGET_REPO env exits 2 (SKILL-05c)"
+else
+  fail "missing \$2 and no TARGET_REPO env exited $MISS_RC instead of 2 (SKILL-05c)"
+fi
+MISS_ERR="$(skill_run test-skill 2>&1 || true)"
+if printf '%s\n' "$MISS_ERR" | grep -q 'conjure publish-skill'; then
+  pass "missing repo shows usage line containing 'conjure publish-skill' (SKILL-05c)"
+else
+  fail "missing repo did not show expected usage line (SKILL-05c)"
+fi
+
+# SKILL-05d: positional $2 takes priority over TARGET_REPO env (no deprecation warning)
+PRIO_OUT="$(TARGET_REPO=other/repo skill_run test-skill myorg/myrepo 2>&1)"
+if printf '%s\n' "$PRIO_OUT" | grep -q 'myorg/myrepo'; then
+  pass "positional \$2 takes priority over TARGET_REPO env (SKILL-05d)"
+else
+  fail "positional \$2 did not override TARGET_REPO env (SKILL-05d)"
+fi
+if ! printf '%s\n' "$PRIO_OUT" | grep -q 'WARN:'; then
+  pass "no deprecation WARN when positional \$2 is present (SKILL-05d)"
+else
+  fail "unexpected WARN emitted when positional \$2 is present (SKILL-05d)"
 fi
 
 # CLEANUP SKILL sandbox
