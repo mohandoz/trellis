@@ -7,7 +7,9 @@
 
 ## Active Milestone
 
-(none — start next with `/gsd-new-milestone`)
+**v0.5.0 — Auto-Update + Healthcheck**
+
+Enable harnesses to stay current: detect drift from upstream, resolve conflicts interactively, and automate updates via PR. Closes the lifecycle loop opened in v0.4.0.
 
 ## Phases
 
@@ -26,9 +28,84 @@
 
 </details>
 
+### v0.5.0 Auto-Update + Healthcheck (Phases 16-20)
+
+- [ ] **Phase 16: Prerequisites** - Add `mutate_rm` to `lib/mutate.sh` and refactor `publish-skill` positional arg
+- [ ] **Phase 17: Drift Detection** - Implement `conjure check` with 3-way drift classification and exit codes
+- [ ] **Phase 18: Conflict Resolution** - Implement `conjure resolve` interactive sidecar walk
+- [ ] **Phase 19: Auto-PR** - Implement `conjure update --pr` with idempotency guard and cron template
+- [ ] **Phase 20: Windows + CI Gate** - Ship `conjure.ps1` PowerShell shim and CI validation jobs
+
+## Phase Details
+
+### Phase 16: Prerequisites
+**Goal**: Lay the two infrastructure foundations that every downstream phase requires — a dry-run-safe file deletion primitive and a clean positional argument interface for `publish-skill`
+**Depends on**: Phase 15.1 (v0.4.0 complete)
+**Requirements**: INFRA-01, DEBT-02
+**Success Criteria** (what must be TRUE):
+  1. `conjure publish-skill <name> <org/repo>` works with a positional second argument and no `TARGET_REPO` env required
+  2. Using `TARGET_REPO` env still works but prints a `WARN:` deprecation message
+  3. `mutate_rm <path>` exists in `lib/mutate.sh`, respects `DRY_RUN`, and increments `CONJURE_DRY_MUTATION_COUNT`
+  4. Existing `mutate_cp` / `mutate_write` regression tests still pass; new `mutate_rm` regression test added
+**Plans**: TBD
+
+### Phase 17: Drift Detection
+**Goal**: Users can discover whether their installed harness has drifted from the upstream kit snapshot via a single read-only command
+**Depends on**: Phase 16
+**Requirements**: DRIFT-01, DRIFT-02
+**Success Criteria** (what must be TRUE):
+  1. `conjure check` prints a file-level delta report showing added, modified, and removed files relative to the upstream kit snapshot
+  2. `conjure check` exits 0 when the harness is fully current and exits 1 when drift is detected
+  3. `conjure check --porcelain` emits machine-readable lines consumable by scripts without text parsing
+  4. A harness file with only user edits (not upstream changes) is not falsely reported as drifted
+**Plans**: TBD
+
+### Phase 18: Conflict Resolution
+**Goal**: Users can interactively resolve all diff3 conflict sidecars left by `conjure update --apply` without manually editing files
+**Depends on**: Phase 16
+**Requirements**: RESOLVE-01, RESOLVE-02
+**Success Criteria** (what must be TRUE):
+  1. `conjure resolve` walks through each `.conjure-conflict-*` sidecar file and prompts `[k]eep / [a]pply / [e]dit / [s]kip` per file
+  2. Running `conjure resolve` in a non-interactive environment (piped stdin) exits 2 with a clear error message
+  3. After a user confirms a resolution, the sidecar file is removed via `mutate_rm` (dry-run safe)
+  4. When all sidecars are cleared, `conjure resolve` prints "No conflicts remain" and exits 0
+**Plans**: TBD
+
+### Phase 19: Auto-PR
+**Goal**: Users can automate harness-update PRs on demand or via a scheduled GitHub Action without manual git operations
+**Depends on**: Phase 17, Phase 18
+**Requirements**: AUTPR-01, AUTPR-02
+**Success Criteria** (what must be TRUE):
+  1. `conjure update --pr` pushes a harness-update branch and opens a GitHub PR with the drift diff as the PR body
+  2. Running `conjure update --pr` a second time when a PR already exists for the same branch prints the existing PR URL and exits 0 (idempotent)
+  3. An optional `.github/workflows/conjure-update.yml` cron template is written by `conjure init` (or on demand) enabling automated weekly drift checks
+**Plans**: TBD
+
+### Phase 20: Windows + CI Gate
+**Goal**: Native Windows users can invoke `conjure` without Git Bash, and CI correctly rejects tagged releases that lack check-run evidence
+**Depends on**: Phase 19
+**Requirements**: WIN-01, WIN-02, DEBT-01
+**Success Criteria** (what must be TRUE):
+  1. `conjure.ps1` invokes the full `conjure` CLI on native Windows without requiring Git Bash or a manual PATH setup
+  2. `conjure.ps1` propagates exit codes correctly — running `conjure.ps1 --version` in pwsh exits 0; a command that exits 2 propagates 2 to the caller
+  3. CI matrix includes a `windows-latest` job with `shell: pwsh` that smoke-tests `conjure.ps1 --version` and asserts exit code propagation
+  4. The `ci-gate` job in `release.yml` fails with an explicit error message when a tagged commit has zero GitHub check-runs, and includes a retry loop to handle API propagation lag
+**Plans**: TBD
+
+## Progress
+
+**Execution Order:** 16 → 17 → 18 → 19 → 20
+
+| Phase | Plans Complete | Status | Completed |
+|-------|----------------|--------|-----------|
+| 16. Prerequisites | 0/TBD | Not started | - |
+| 17. Drift Detection | 0/TBD | Not started | - |
+| 18. Conflict Resolution | 0/TBD | Not started | - |
+| 19. Auto-PR | 0/TBD | Not started | - |
+| 20. Windows + CI Gate | 0/TBD | Not started | - |
+
 ## Backlog
 
 ### Future Milestones
 
-- v0.5.0 — Auto-update drift detector, auto-PR bot (needs frozen schemas first)
 - v0.6.0 — Workspace / cross-repo graph orchestration (single-repo correctness first)

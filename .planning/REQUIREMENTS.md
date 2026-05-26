@@ -90,16 +90,16 @@ Explicit boundaries for this milestone:
 
 *Filled by roadmapper — maps each REQ-ID to a phase.*
 
-| REQ-ID   | Phase | Phase Name |
-|----------|-------|-----------|
-| DEBT-02  | —     | —         |
-| INFRA-01 | —     | —         |
-| DRIFT-01 | —     | —         |
-| DRIFT-02 | —     | —         |
-| RESOLVE-01 | —   | —         |
-| RESOLVE-02 | —   | —         |
-| AUTPR-01 | —     | —         |
-| AUTPR-02 | —     | —         |
-| WIN-01   | —     | —         |
-| WIN-02   | —     | —         |
-| DEBT-01  | —     | —         |
+| REQ-ID     | Phase | Phase Name            |
+|------------|-------|-----------------------|
+| INFRA-01   | 16    | Prerequisites         |
+| DEBT-02    | 16    | Prerequisites         |
+| DRIFT-01   | 17    | Drift Detection       |
+| DRIFT-02   | 17    | Drift Detection       |
+| RESOLVE-01 | 18    | Conflict Resolution   |
+| RESOLVE-02 | 18    | Conflict Resolution   |
+| AUTPR-01   | 19    | Auto-PR               |
+| AUTPR-02   | 19    | Auto-PR               |
+| WIN-01     | 20    | Windows + CI Gate     |
+| WIN-02     | 20    | Windows + CI Gate     |
+| DEBT-01    | 20    | Windows + CI Gate     |
