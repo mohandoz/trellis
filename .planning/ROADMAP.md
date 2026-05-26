@@ -31,7 +31,7 @@ Enable harnesses to stay current: detect drift from upstream, resolve conflicts 
 ### v0.5.0 Auto-Update + Healthcheck (Phases 16-20)
 
 - [x] **Phase 16: Prerequisites** - Add `mutate_rm` to `lib/mutate.sh` and refactor `publish-skill` positional arg (completed 2026-05-26)
-- [ ] **Phase 17: Drift Detection** - Implement `conjure check` with 3-way drift classification and exit codes
+- [x] **Phase 17: Drift Detection** - Implement `conjure check` with 3-way drift classification and exit codes (completed 2026-05-26)
 - [ ] **Phase 18: Conflict Resolution** - Implement `conjure resolve` interactive sidecar walk
 - [ ] **Phase 19: Auto-PR** - Implement `conjure update --pr` with idempotency guard and cron template
 - [ ] **Phase 20: Windows + CI Gate** - Ship `conjure.ps1` PowerShell shim and CI validation jobs
@@ -64,7 +64,7 @@ Plans:
 **Plans**: 2 plans
 Plans:
 - [x] 17-01-PLAN.md — Create scripts/check.sh worker (sha256 classifier, manifest builder, M/R/A output)
-- [ ] 17-02-PLAN.md — Wire cmd_check in cli/conjure + DRIFT regression tests in tests/run.sh
+- [x] 17-02-PLAN.md — Wire cmd_check in cli/conjure + DRIFT regression tests in tests/run.sh
 
 ### Phase 18: Conflict Resolution
 **Goal**: Users can interactively resolve all diff3 conflict sidecars left by `conjure update --apply` without manually editing files
@@ -105,7 +105,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 16. Prerequisites | 2/2 | Complete   | 2026-05-26 |
-| 17. Drift Detection | 1/2 | In Progress|  |
+| 17. Drift Detection | 2/2 | Complete   | 2026-05-26 |
 | 18. Conflict Resolution | 0/TBD | Not started | - |
 | 19. Auto-PR | 0/TBD | Not started | - |
 | 20. Windows + CI Gate | 0/TBD | Not started | - |
