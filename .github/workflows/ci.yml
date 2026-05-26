@@ -113,3 +113,28 @@ jobs:
           if grep 'bash .claude/hooks' "$RUNNER_TEMP/fixture/.claude/settings.json"; then
             echo "FAIL: bash hook commands found (SAFE-03 regression)" && exit 1
           fi
+
+  windows-ps1-shim:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Smoke-test conjure.ps1 --version (pwsh)
+        shell: pwsh
+        run: |
+          & "$env:GITHUB_WORKSPACE\conjure.ps1" --version
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "conjure.ps1 --version exited $LASTEXITCODE (expected 0)"
+            exit 1
+          }
+          Write-Host "OK: conjure.ps1 --version exit 0"
+
+      - name: Confirm exit code 2 propagation (pwsh)
+        shell: pwsh
+        run: |
+          & "$env:GITHUB_WORKSPACE\conjure.ps1" init
+          if ($LASTEXITCODE -ne 2) {
+            Write-Error "Expected exit 2 from conjure.ps1 init, got $LASTEXITCODE"
+            exit 1
+          }
+          Write-Host "OK: exit code 2 propagated correctly"

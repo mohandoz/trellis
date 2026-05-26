@@ -34,7 +34,7 @@ Enable harnesses to stay current: detect drift from upstream, resolve conflicts 
 - [x] **Phase 17: Drift Detection** - Implement `conjure check` with 3-way drift classification and exit codes (completed 2026-05-26)
 - [x] **Phase 18: Conflict Resolution** - Implement `conjure resolve` interactive sidecar walk (completed 2026-05-26)
 - [x] **Phase 19: Auto-PR** - Implement `conjure update --pr` with idempotency guard and cron template (completed 2026-05-26)
-- [ ] **Phase 20: Windows + CI Gate** - Ship `conjure.ps1` PowerShell shim and CI validation jobs
+- [x] **Phase 20: Windows + CI Gate** - Ship `conjure.ps1` PowerShell shim and CI validation jobs (completed 2026-05-26)
 
 ## Phase Details
 
@@ -102,7 +102,10 @@ Plans:
   2. `conjure.ps1` propagates exit codes correctly — running `conjure.ps1 --version` in pwsh exits 0; a command that exits 2 propagates 2 to the caller
   3. CI matrix includes a `windows-latest` job with `shell: pwsh` that smoke-tests `conjure.ps1 --version` and asserts exit code propagation
   4. The `ci-gate` job in `release.yml` fails with an explicit error message when a tagged commit has zero GitHub check-runs, and includes a retry loop to handle API propagation lag
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [x] 20-01-PLAN.md — conjure.ps1 PowerShell shim (WIN-01)
+- [x] 20-02-PLAN.md — windows-ps1-shim CI job + ci-gate retry loop (WIN-02, DEBT-01)
 
 ## Progress
 
@@ -114,7 +117,7 @@ Plans:
 | 17. Drift Detection | 2/2 | Complete   | 2026-05-26 |
 | 18. Conflict Resolution | 2/2 | Complete   | 2026-05-26 |
 | 19. Auto-PR | 2/2 | Complete   | 2026-05-26 |
-| 20. Windows + CI Gate | 0/TBD | Not started | - |
+| 20. Windows + CI Gate | 2/2 | Complete   | 2026-05-26 |
 
 ## Backlog
 
