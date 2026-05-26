@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v0.5.0
 milestone_name: Auto-Update + Healthcheck
 status: verifying
-last_updated: "2026-05-26T03:42:52.876Z"
+last_updated: "2026-05-26T03:46:27.994Z"
 last_activity: 2026-05-26
 progress:
   total_phases: 5
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 6
-  completed_plans: 5
-  percent: 40
+  completed_plans: 6
+  percent: 60
 ---
 
 # Project State
@@ -29,7 +29,7 @@ Plan: 2 of 02 complete
 Status: Phase complete — ready for verification
 Last activity: 2026-05-26
 
-Progress: [████████░░] 83%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -53,6 +53,7 @@ Progress: [████████░░] 83%
 - Trend: —
 
 | Phase 18-conflict-resolution P01 | 15m | 1 tasks | 1 files |
+| Phase 18-conflict-resolution P02 | 2 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -64,6 +65,7 @@ Progress: [████████░░] 83%
 - [v0.4.0 Docker]: debian:bookworm-slim base; separate Homebrew tap repo
 - [v0.4.0 release]: 4-job release.yml — ci-gate → release → docker + homebrew (parallel)
 - [Phase ?]: INFRA-01 mutate_rm: no -r flag; callers (Phase 18) control recursive logic for individual sidecar file deletion
+- [Phase ?]: cmd_resolve mirrors cmd_check: env-forwarded bash exec to scripts/resolve.sh
 
 ### Pending Todos
 
@@ -88,6 +90,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-05-26T03:42:52.871Z
+Last session: 2026-05-26T03:46:24.244Z
 Stopped at: 16-01-PLAN.md complete — mutate_rm in lib/mutate.sh + 4 regression tests passing
 Resume file: None

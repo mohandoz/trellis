@@ -32,7 +32,7 @@ Enable harnesses to stay current: detect drift from upstream, resolve conflicts 
 
 - [x] **Phase 16: Prerequisites** - Add `mutate_rm` to `lib/mutate.sh` and refactor `publish-skill` positional arg (completed 2026-05-26)
 - [x] **Phase 17: Drift Detection** - Implement `conjure check` with 3-way drift classification and exit codes (completed 2026-05-26)
-- [ ] **Phase 18: Conflict Resolution** - Implement `conjure resolve` interactive sidecar walk
+- [x] **Phase 18: Conflict Resolution** - Implement `conjure resolve` interactive sidecar walk (completed 2026-05-26)
 - [ ] **Phase 19: Auto-PR** - Implement `conjure update --pr` with idempotency guard and cron template
 - [ ] **Phase 20: Windows + CI Gate** - Ship `conjure.ps1` PowerShell shim and CI validation jobs
 
@@ -78,7 +78,7 @@ Plans:
 **Plans**: 2 plans
 Plans:
 - [x] 18-01-PLAN.md — Create scripts/resolve.sh worker (sidecar walker, prompt loop, mutate_rm)
-- [ ] 18-02-PLAN.md — Wire cmd_resolve in cli/conjure + RESOLVE regression tests in tests/run.sh
+- [x] 18-02-PLAN.md — Wire cmd_resolve in cli/conjure + RESOLVE regression tests in tests/run.sh
 
 ### Phase 19: Auto-PR
 **Goal**: Users can automate harness-update PRs on demand or via a scheduled GitHub Action without manual git operations
@@ -109,7 +109,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 16. Prerequisites | 2/2 | Complete   | 2026-05-26 |
 | 17. Drift Detection | 2/2 | Complete   | 2026-05-26 |
-| 18. Conflict Resolution | 1/2 | In Progress|  |
+| 18. Conflict Resolution | 2/2 | Complete   | 2026-05-26 |
 | 19. Auto-PR | 0/TBD | Not started | - |
 | 20. Windows + CI Gate | 0/TBD | Not started | - |
 
