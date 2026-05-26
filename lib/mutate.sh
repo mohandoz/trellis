@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # lib/mutate.sh — sourced mutation chokepoint for Conjure.
-# Source this file; call mutate_mkdir, mutate_cp, mutate_write, mutate_summary.
+# Source this file; call mutate_mkdir, mutate_cp, mutate_write, mutate_rm, mutate_summary.
 # Requires: DRY_RUN env var (0=live, 1=dry); set -u safe via ${DRY_RUN:-0}.
 # POSIX bash 3.2+ compatible. No associative arrays, no mapfile, no local -n.
 #
@@ -9,6 +9,7 @@
 #   mutate_mkdir  <dir>
 #   mutate_cp     <src> <dest>
 #   mutate_write  <dest> <content> [--append]
+#   mutate_rm     <path>
 #   mutate_summary   # call at end of each script
 
 # Initialize dry-run mutation counter if not already set.
@@ -61,6 +62,18 @@ mutate_write() {
   else
     printf '%s' "$content" > "$dest"
   fi
+}
+
+# mutate_rm <path>
+# In dry-run: prints [dry-run] would rm <path>, increments counter.
+# In live mode: removes the file with rm -f (no -r; callers control recursive logic).
+mutate_rm() {
+  if [ "${DRY_RUN:-0}" = "1" ]; then
+    echo "[dry-run] would rm $1"
+    CONJURE_DRY_MUTATION_COUNT=$((CONJURE_DRY_MUTATION_COUNT + 1))
+    return 0
+  fi
+  rm -f "$1"
 }
 
 # mutate_summary
