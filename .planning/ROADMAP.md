@@ -77,7 +77,7 @@ Plans:
   4. When all sidecars are cleared, `conjure resolve` prints "No conflicts remain" and exits 0
 **Plans**: 2 plans
 Plans:
-- [ ] 18-01-PLAN.md — Create scripts/resolve.sh worker (sidecar walker, prompt loop, mutate_rm)
+- [x] 18-01-PLAN.md — Create scripts/resolve.sh worker (sidecar walker, prompt loop, mutate_rm)
 - [ ] 18-02-PLAN.md — Wire cmd_resolve in cli/conjure + RESOLVE regression tests in tests/run.sh
 
 ### Phase 19: Auto-PR
@@ -109,7 +109,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 16. Prerequisites | 2/2 | Complete   | 2026-05-26 |
 | 17. Drift Detection | 2/2 | Complete   | 2026-05-26 |
-| 18. Conflict Resolution | 0/2 | Not started | - |
+| 18. Conflict Resolution | 1/2 | In Progress|  |
 | 19. Auto-PR | 0/TBD | Not started | - |
 | 20. Windows + CI Gate | 0/TBD | Not started | - |
 

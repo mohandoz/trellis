@@ -27,10 +27,10 @@ conflicts interactively, and automate updates via PR.
 
 ### Conflict Resolution
 
-- [ ] **RESOLVE-01**: User can run `conjure resolve` to interactively walk through
+- [x] **RESOLVE-01**: User can run `conjure resolve` to interactively walk through
   all diff3 conflict sidecars; prompts `[k]eep / [a]pply / [e]dit / [s]kip` per
   file; command guards `[ -t 0 ]` and exits 2 (not 1) when run non-interactively
-- [ ] **RESOLVE-02**: After user confirms each resolution, `conjure resolve` removes
+- [x] **RESOLVE-02**: After user confirms each resolution, `conjure resolve` removes
   the resolved sidecar via `mutate_rm` (dry-run safe); when all sidecars are
   cleared it prints a "No conflicts remain" confirmation
 
