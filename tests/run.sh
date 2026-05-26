@@ -1377,6 +1377,86 @@ else
   fail "release.yml missing bump-homebrew-formula-action reference (BREW-04)"
 fi
 
+# ──────────────────────────────────────────────────────────────────────────────
+# DRIFT detection tests (DRIFT-01, DRIFT-02)
+# ──────────────────────────────────────────────────────────────────────────────
+echo
+echo "▸ Drift detection tests (DRIFT-01, DRIFT-02)"
+
+# DRIFT-01a — fresh init → no drift, exit 0
+DRIFT_DIR="$(mktemp -d)"
+trap 'rm -rf "$DRIFT_DIR"' EXIT
+printf '# Test project\n' > "$DRIFT_DIR/CLAUDE.md"
+CONJURE_HOME="$CONJURE_HOME" cli/conjure init "$DRIFT_DIR" >/dev/null 2>&1
+DRIFT_RC=0
+CONJURE_HOME="$CONJURE_HOME" cli/conjure check "$DRIFT_DIR" >/dev/null 2>&1 || DRIFT_RC=$?
+if [ "$DRIFT_RC" -eq 0 ]; then
+  pass "check exits 0 on fully-current harness (DRIFT-01)"
+else
+  fail "check exited $DRIFT_RC on fully-current harness — expected 0 (DRIFT-01)"
+fi
+rm -rf "$DRIFT_DIR"
+trap - EXIT
+
+# DRIFT-01b — modified file (settings.json) → exit 1 + porcelain M line
+DRIFT_DIR="$(mktemp -d)"
+trap 'rm -rf "$DRIFT_DIR"' EXIT
+printf '# Test project\n' > "$DRIFT_DIR/CLAUDE.md"
+CONJURE_HOME="$CONJURE_HOME" cli/conjure init "$DRIFT_DIR" >/dev/null 2>&1
+printf 'user-edit\n' >> "$DRIFT_DIR/.claude/settings.json"
+DRIFT_OUT="$(CONJURE_HOME="$CONJURE_HOME" cli/conjure check --porcelain "$DRIFT_DIR" 2>&1 || true)"
+DRIFT_RC=0
+CONJURE_HOME="$CONJURE_HOME" cli/conjure check "$DRIFT_DIR" >/dev/null 2>&1 || DRIFT_RC=$?
+if [ "$DRIFT_RC" -eq 1 ]; then
+  pass "check exits 1 when file is modified (DRIFT-01)"
+else
+  fail "check exited $DRIFT_RC on modified file — expected 1 (DRIFT-01)"
+fi
+if printf '%s\n' "$DRIFT_OUT" | grep -q '^M .claude/settings.json'; then
+  pass "--porcelain emits 'M .claude/settings.json' (DRIFT-02)"
+else
+  fail "--porcelain did not emit 'M .claude/settings.json' — got: $DRIFT_OUT (DRIFT-02)"
+fi
+rm -rf "$DRIFT_DIR"
+trap - EXIT
+
+# DRIFT-01c — removed file (post-edit-format.mjs) → exit 1 + porcelain R line
+DRIFT_DIR="$(mktemp -d)"
+trap 'rm -rf "$DRIFT_DIR"' EXIT
+printf '# Test project\n' > "$DRIFT_DIR/CLAUDE.md"
+CONJURE_HOME="$CONJURE_HOME" cli/conjure init "$DRIFT_DIR" >/dev/null 2>&1
+rm -f "$DRIFT_DIR/.claude/hooks/post-edit-format.mjs"
+DRIFT_OUT="$(CONJURE_HOME="$CONJURE_HOME" cli/conjure check --porcelain "$DRIFT_DIR" 2>&1 || true)"
+DRIFT_RC=0
+CONJURE_HOME="$CONJURE_HOME" cli/conjure check "$DRIFT_DIR" >/dev/null 2>&1 || DRIFT_RC=$?
+if [ "$DRIFT_RC" -eq 1 ]; then
+  pass "check exits 1 when kit file is removed from harness (DRIFT-01)"
+else
+  fail "check exited $DRIFT_RC on removed file — expected 1 (DRIFT-01)"
+fi
+if printf '%s\n' "$DRIFT_OUT" | grep -q '^R .claude/hooks/post-edit-format.mjs'; then
+  pass "--porcelain emits 'R' for removed hook (DRIFT-02)"
+else
+  fail "--porcelain did not emit 'R .claude/hooks/post-edit-format.mjs' — got: $DRIFT_OUT (DRIFT-02)"
+fi
+rm -rf "$DRIFT_DIR"
+trap - EXIT
+
+# DRIFT-02 — porcelain exit 0 on current harness
+DRIFT_DIR="$(mktemp -d)"
+trap 'rm -rf "$DRIFT_DIR"' EXIT
+printf '# Test project\n' > "$DRIFT_DIR/CLAUDE.md"
+CONJURE_HOME="$CONJURE_HOME" cli/conjure init "$DRIFT_DIR" >/dev/null 2>&1
+PORE_RC=0
+CONJURE_HOME="$CONJURE_HOME" cli/conjure check --porcelain "$DRIFT_DIR" >/dev/null 2>&1 || PORE_RC=$?
+if [ "$PORE_RC" -eq 0 ]; then
+  pass "--porcelain exits 0 when harness is current (DRIFT-02)"
+else
+  fail "--porcelain exited $PORE_RC on current harness — expected 0 (DRIFT-02)"
+fi
+rm -rf "$DRIFT_DIR"
+trap - EXIT
+
 # Summary
 echo
 echo "═══════════════════════════════════════════════════════════════════"
