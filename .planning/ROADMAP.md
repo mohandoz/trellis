@@ -19,7 +19,7 @@ Make Conjure installable and shareable through every standard channel while clea
 - [x] **Phase 12: Org Overlay** - Implement `conjure init --overlay` + `conjure refresh-overlay` system (completed 2026-05-25)
 - [x] **Phase 13: Homebrew Tap** - Publish `mohandoz/homebrew-conjure` formula and auto-bump action (completed 2026-05-25)
 - [x] **Phase 14: Docker + Windows CI** - Multi-arch Docker image and `windows-latest` CI matrix entry (completed 2026-05-26)
-- [ ] **Phase 15: Release Pipeline** - Single `release.yml` wires all distribution targets under one gate
+- [x] **Phase 15: Release Pipeline** - Single `release.yml` wires all distribution targets under one gate (completed 2026-05-26)
 
 ## Phase Details
 
@@ -189,7 +189,7 @@ Plans:
 
 Plans:
 
-- [ ] 15-01-PLAN.md — Extend release.yml with ci-gate job + Docker build/push + marketplace check (REL-01, REL-02, DOCK-03)
+- [x] 15-01-PLAN.md — Extend release.yml with ci-gate job + Docker build/push + marketplace check (REL-01, REL-02, DOCK-03)
 
 ## Progress
 
@@ -202,7 +202,7 @@ Plans:
 | 12. Org Overlay | v0.4.0 | 3/3 | Complete    | 2026-05-25 |
 | 13. Homebrew Tap | v0.4.0 | 3/3 | Complete    | 2026-05-25 |
 | 14. Docker + Windows CI | v0.4.0 | 3/3 | Complete    | 2026-05-26 |
-| 15. Release Pipeline | v0.4.0 | 0/1 | Not started | - |
+| 15. Release Pipeline | v0.4.0 | 1/1 | Complete    | 2026-05-26 |
 
 ## Backlog
 
