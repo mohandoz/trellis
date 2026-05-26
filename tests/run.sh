@@ -1457,6 +1457,83 @@ fi
 rm -rf "$DRIFT_DIR"
 trap - EXIT
 
+# ──────────────────────────────────────────────────────────────────────────────
+# RESOLVE conflict resolution tests (RESOLVE-01, RESOLVE-02)
+# ──────────────────────────────────────────────────────────────────────────────
+echo
+echo "▸ Conflict resolution tests (RESOLVE-01, RESOLVE-02)"
+
+# RESOLVE-01a — non-interactive guard: piped stdin + sidecars present → exit 2
+RESOLVE_DIR="$(mktemp -d)"
+trap 'rm -rf "$RESOLVE_DIR"' EXIT
+printf 'upstream content\n' > "$RESOLVE_DIR/.conjure-conflict-foo.txt"
+printf 'my content\n' > "$RESOLVE_DIR/foo.txt"
+RESOLVE_RC=0
+CONJURE_HOME="$CONJURE_HOME" cli/conjure resolve "$RESOLVE_DIR" </dev/null >/dev/null 2>&1 || RESOLVE_RC=$?
+if [ "$RESOLVE_RC" -eq 2 ]; then
+  pass "resolve exits 2 when stdin is not a TTY (RESOLVE-01)"
+else
+  fail "resolve exited $RESOLVE_RC with piped stdin — expected 2 (RESOLVE-01)"
+fi
+rm -rf "$RESOLVE_DIR"
+trap - EXIT
+
+# RESOLVE-02a — all-clear on empty dir: no sidecars → exit 0 + "No conflicts remain"
+RESOLVE_DIR="$(mktemp -d)"
+trap 'rm -rf "$RESOLVE_DIR"' EXIT
+ALLCLEAR_RC=0
+ALLCLEAR_OUT="$(CONJURE_HOME="$CONJURE_HOME" cli/conjure resolve "$RESOLVE_DIR" </dev/null 2>&1)" || ALLCLEAR_RC=$?
+if [ "$ALLCLEAR_RC" -eq 0 ]; then
+  pass "resolve exits 0 on empty dir (RESOLVE-02)"
+else
+  fail "resolve exited $ALLCLEAR_RC on empty dir — expected 0 (RESOLVE-02)"
+fi
+if printf '%s\n' "$ALLCLEAR_OUT" | grep -q "No conflicts remain"; then
+  pass "resolve prints 'No conflicts remain' on empty dir (RESOLVE-02)"
+else
+  fail "resolve did not print 'No conflicts remain' — got: $ALLCLEAR_OUT (RESOLVE-02)"
+fi
+rm -rf "$RESOLVE_DIR"
+trap - EXIT
+
+# RESOLVE-02b — keep action: sidecar removed, current file unchanged
+RESOLVE_DIR="$(mktemp -d)"
+trap 'rm -rf "$RESOLVE_DIR"' EXIT
+printf 'upstream content\n' > "$RESOLVE_DIR/.conjure-conflict-foo.txt"
+printf 'my content\n' > "$RESOLVE_DIR/foo.txt"
+printf 'k\n' | CONJURE_HOME="$CONJURE_HOME" DRY_RUN=0 CONJURE_FORCE_INTERACTIVE=1 bash "$CONJURE_HOME/scripts/resolve.sh" "$RESOLVE_DIR" >/dev/null 2>&1 || true
+if [ ! -f "$RESOLVE_DIR/.conjure-conflict-foo.txt" ]; then
+  pass "keep removes sidecar (RESOLVE-02)"
+else
+  fail "keep did not remove sidecar (RESOLVE-02)"
+fi
+if grep -q 'my content' "$RESOLVE_DIR/foo.txt"; then
+  pass "keep leaves current file unchanged (RESOLVE-02)"
+else
+  fail "keep modified current file — expected 'my content' unchanged (RESOLVE-02)"
+fi
+rm -rf "$RESOLVE_DIR"
+trap - EXIT
+
+# RESOLVE-02c — apply action: current file updated with sidecar content, sidecar removed
+RESOLVE_DIR="$(mktemp -d)"
+trap 'rm -rf "$RESOLVE_DIR"' EXIT
+printf 'upstream content\n' > "$RESOLVE_DIR/.conjure-conflict-foo.txt"
+printf 'my content\n' > "$RESOLVE_DIR/foo.txt"
+printf 'a\n' | CONJURE_HOME="$CONJURE_HOME" DRY_RUN=0 CONJURE_FORCE_INTERACTIVE=1 bash "$CONJURE_HOME/scripts/resolve.sh" "$RESOLVE_DIR" >/dev/null 2>&1 || true
+if [ ! -f "$RESOLVE_DIR/.conjure-conflict-foo.txt" ]; then
+  pass "apply removes sidecar (RESOLVE-02)"
+else
+  fail "apply did not remove sidecar (RESOLVE-02)"
+fi
+if grep -q 'upstream content' "$RESOLVE_DIR/foo.txt"; then
+  pass "apply updates current file (RESOLVE-02)"
+else
+  fail "apply did not update current file — expected 'upstream content' (RESOLVE-02)"
+fi
+rm -rf "$RESOLVE_DIR"
+trap - EXIT
+
 # Summary
 echo
 echo "═══════════════════════════════════════════════════════════════════"
