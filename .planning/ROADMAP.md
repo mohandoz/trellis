@@ -33,7 +33,7 @@ Enable harnesses to stay current: detect drift from upstream, resolve conflicts 
 - [x] **Phase 16: Prerequisites** - Add `mutate_rm` to `lib/mutate.sh` and refactor `publish-skill` positional arg (completed 2026-05-26)
 - [x] **Phase 17: Drift Detection** - Implement `conjure check` with 3-way drift classification and exit codes (completed 2026-05-26)
 - [x] **Phase 18: Conflict Resolution** - Implement `conjure resolve` interactive sidecar walk (completed 2026-05-26)
-- [ ] **Phase 19: Auto-PR** - Implement `conjure update --pr` with idempotency guard and cron template
+- [x] **Phase 19: Auto-PR** - Implement `conjure update --pr` with idempotency guard and cron template (completed 2026-05-26)
 - [ ] **Phase 20: Windows + CI Gate** - Ship `conjure.ps1` PowerShell shim and CI validation jobs
 
 ## Phase Details
@@ -91,7 +91,7 @@ Plans:
 **Plans**: 2 plans
 Plans:
 - [x] 19-01-PLAN.md — Add --pr and --cron branches to cmd_update in cli/conjure (AUTPR-01, AUTPR-02)
-- [ ] 19-02-PLAN.md — Add AUTPR regression tests to tests/run.sh (AUTPR-01, AUTPR-02)
+- [x] 19-02-PLAN.md — Add AUTPR regression tests to tests/run.sh (AUTPR-01, AUTPR-02)
 
 ### Phase 20: Windows + CI Gate
 **Goal**: Native Windows users can invoke `conjure` without Git Bash, and CI correctly rejects tagged releases that lack check-run evidence
@@ -113,7 +113,7 @@ Plans:
 | 16. Prerequisites | 2/2 | Complete   | 2026-05-26 |
 | 17. Drift Detection | 2/2 | Complete   | 2026-05-26 |
 | 18. Conflict Resolution | 2/2 | Complete   | 2026-05-26 |
-| 19. Auto-PR | 1/2 | In Progress|  |
+| 19. Auto-PR | 2/2 | Complete   | 2026-05-26 |
 | 20. Windows + CI Gate | 0/TBD | Not started | - |
 
 ## Backlog
