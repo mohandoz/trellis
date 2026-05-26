@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v0.4.0
 milestone_name: Distribution + Ecosystem
-status: complete
-last_updated: "2026-05-26T04:30:00.000Z"
-last_activity: 2026-05-26
+status: Awaiting next milestone
+last_updated: "2026-05-26T01:22:58.348Z"
+last_activity: 2026-05-26 — Milestone v0.4.0 completed and archived
 progress:
   total_phases: 9
   completed_phases: 9
@@ -24,12 +24,10 @@ See: .planning/PROJECT.md (updated 2026-05-25)
 
 ## Current Position
 
-Phase: 15.1 (complete)
-Plan: 15.1-01 (complete)
-Status: Milestone complete
-Last activity: 2026-05-26
-
-Progress: [██████████] 100%
+Phase: Milestone v0.4.0 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-05-26 — Milestone v0.4.0 completed and archived
 
 ## Performance Metrics
 
@@ -88,15 +86,28 @@ None yet.
 
 ## Deferred Items
 
+Items acknowledged and deferred at milestone close on 2026-05-26:
+
 | Category | Item | Status | Deferred At |
 |----------|------|--------|-------------|
 | Docker | `conjure:full` tag with optional Go/Rust tools | Deferred to v0.4.x | v0.4.0 scoping |
 | Windows | PowerShell `conjure.ps1` entrypoint (no Git Bash) | Deferred to v0.5.0 | v0.4.0 scoping |
 | Overlay | `compatible-kit-version` manifest field | Deferred to v0.4.x | v0.4.0 scoping |
 | Publish | `--dry-run` for `conjure publish` / `publish-skill` | Deferred | v0.4.0 scoping |
+| uat_gap | Phase 13 Homebrew UAT — 3 scenarios need live brew install | partial | v0.4.0 milestone close |
+| verification_gap | Phase 10 VERIFICATION.md — human_needed (claude CLI required) | human_needed | v0.4.0 milestone close |
+| verification_gap | Phase 13 VERIFICATION.md — human_needed (live brew install) | human_needed | v0.4.0 milestone close |
+| verification_gap | Phase 14 VERIFICATION.md — human_needed (Docker + Windows CI runner) | human_needed | v0.4.0 milestone close |
+| verification_gap | Phase 15 VERIFICATION.md — human_needed (live tag push) | human_needed | v0.4.0 milestone close |
+
+Known deferred items at close: 9 (see Deferred Items above)
 
 ## Session Continuity
 
-Last session: 2026-05-26T00:04:46.443Z
-Stopped at: Phase 14 context gathered
-Resume file: .planning/phases/14-docker-windows-ci/14-CONTEXT.md
+Last session: 2026-05-26T04:30:00Z
+Stopped at: v0.4.0 milestone complete
+Resume file: .planning/milestones/v0.4.0-ROADMAP.md
+
+## Operator Next Steps
+
+- Start the next milestone with /gsd-new-milestone
