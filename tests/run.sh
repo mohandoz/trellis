@@ -221,6 +221,48 @@ fi
 rm -rf "$TMPDIR_TARGET"
 trap - EXIT
 
+echo
+echo "▸ mutate_rm unit tests (INFRA-01)"
+
+# Sub-case 1: dry-run path — use a mktemp-style path but do NOT create the file.
+# mutate_rm must print "[dry-run] would rm <path>", increment counter, and leave
+# the path absent (it was absent before and must remain absent after).
+MUTATE_RM_TMPPATH="/tmp/conjure-test-mutate-rm-$$-dry"
+MUTATE_RM_OUT="$(
+  DRY_RUN=1 bash -c '
+    source '"'"'lib/mutate.sh'"'"'
+    CONJURE_DRY_MUTATION_COUNT=0
+    mutate_rm "'"$MUTATE_RM_TMPPATH"'"
+    printf "%s\n" "[count=$CONJURE_DRY_MUTATION_COUNT]"
+  '
+)"
+if printf '%s\n' "$MUTATE_RM_OUT" | grep -q "would rm"; then
+  pass "mutate_rm dry-run: output contains 'would rm' (INFRA-01)"
+else
+  fail "mutate_rm dry-run: output missing 'would rm' (INFRA-01)"
+fi
+if printf '%s\n' "$MUTATE_RM_OUT" | grep -q "\[count=1\]"; then
+  pass "mutate_rm dry-run: CONJURE_DRY_MUTATION_COUNT incremented to 1 (INFRA-01)"
+else
+  fail "mutate_rm dry-run: counter not incremented — got: $MUTATE_RM_OUT (INFRA-01)"
+fi
+if [ ! -f "$MUTATE_RM_TMPPATH" ]; then
+  pass "mutate_rm dry-run: path absent after call (no filesystem mutation) (INFRA-01)"
+else
+  fail "mutate_rm dry-run: file was created — DRY_RUN not honored (INFRA-01)"
+fi
+
+# Sub-case 2: live path — create a real temp file, call mutate_rm, assert it is gone.
+MUTATE_RM_LIVE="$(mktemp)"
+# shellcheck disable=SC1090
+source lib/mutate.sh
+DRY_RUN=0 mutate_rm "$MUTATE_RM_LIVE"
+if [ ! -f "$MUTATE_RM_LIVE" ]; then
+  pass "mutate_rm live: file removed by rm -f (INFRA-01)"
+else
+  fail "mutate_rm live: file still present after mutate_rm (INFRA-01)"
+fi
+
 # Migration scripts exist for every documented source
 echo
 echo "▸ Migration coverage"
