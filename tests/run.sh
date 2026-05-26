@@ -1534,6 +1534,137 @@ fi
 rm -rf "$RESOLVE_DIR"
 trap - EXIT
 
+# ──────────────────────────────────────────────────────────────────────────────
+# Auto-PR tests (AUTPR-01, AUTPR-02)
+# ──────────────────────────────────────────────────────────────────────────────
+echo
+echo "▸ Auto-PR tests (AUTPR-01, AUTPR-02)"
+
+# Build a FILTERED_PATH that strips gh (same pattern as SKILL-02 lines 1044-1054)
+AUTPR_SAVED_PATH="$PATH"
+AUTPR_GH_LOC="$(command -v gh 2>/dev/null || true)"
+AUTPR_FILTERED_PATH="$PATH"
+if [ -n "$AUTPR_GH_LOC" ]; then
+  AUTPR_GH_LOC_DIR="$(dirname "$AUTPR_GH_LOC")"
+  AUTPR_GIT_LOC_DIR="$(dirname "$(command -v git)")"
+  AUTPR_FILTERED_PATH="$(printf '%s' "$PATH" | tr ':' '\n' | grep -vxF "$AUTPR_GH_LOC_DIR" | tr '\n' ':' | sed 's/:$//')"
+  case ":$AUTPR_FILTERED_PATH:" in
+    *":$AUTPR_GIT_LOC_DIR:"*) ;;
+    *) AUTPR_FILTERED_PATH="${AUTPR_GIT_LOC_DIR}:${AUTPR_FILTERED_PATH}" ;;
+  esac
+fi
+
+# AUTPR-01a — zero-drift guard: fully-current harness → "Harness is current" + exit 0
+# Note: --pr checks for gh before the zero-drift guard, so we stub gh to a no-op binary.
+AUTPR_STUB_A="$(mktemp -d)"
+printf '#!/bin/sh\nexit 0\n' > "$AUTPR_STUB_A/gh"
+chmod +x "$AUTPR_STUB_A/gh"
+AUTPR_DIR="$(mktemp -d)"
+trap 'rm -rf "$AUTPR_DIR" "$AUTPR_STUB_A"' EXIT
+printf '# Test project\n' > "$AUTPR_DIR/CLAUDE.md"
+CONJURE_HOME="$CONJURE_HOME" cli/conjure init "$AUTPR_DIR" >/dev/null 2>&1
+AUTPR_RC=0
+AUTPR_OUT="$(PATH="$AUTPR_STUB_A:$PATH" CONJURE_HOME="$CONJURE_HOME" cli/conjure update --pr "$AUTPR_DIR" 2>&1)" || AUTPR_RC=$?
+if [ "$AUTPR_RC" -eq 0 ]; then
+  pass "update --pr exit code 0 on zero-drift (AUTPR-01)"
+else
+  fail "update --pr exited $AUTPR_RC on zero-drift — expected 0 (AUTPR-01)"
+fi
+if printf '%s\n' "$AUTPR_OUT" | grep -q "Harness is current"; then
+  pass "update --pr prints 'Harness is current' on zero-drift (AUTPR-01)"
+else
+  fail "update --pr did not print 'Harness is current' on zero-drift — got: $AUTPR_OUT (AUTPR-01)"
+fi
+rm -rf "$AUTPR_DIR" "$AUTPR_STUB_A"
+trap - EXIT
+
+# AUTPR-01b — missing-gh guard: no gh on PATH → exit 2 + "gh CLI required"
+AUTPR_DIR="$(mktemp -d)"
+trap 'rm -rf "$AUTPR_DIR"' EXIT
+printf '# Test project\n' > "$AUTPR_DIR/CLAUDE.md"
+CONJURE_HOME="$CONJURE_HOME" cli/conjure init "$AUTPR_DIR" >/dev/null 2>&1
+printf 'drift\n' >> "$AUTPR_DIR/.claude/settings.json"
+NOGH_RC=0
+NOGH_OUT="$(PATH="$AUTPR_FILTERED_PATH" CONJURE_HOME="$CONJURE_HOME" cli/conjure update --pr "$AUTPR_DIR" 2>&1)" || NOGH_RC=$?
+if [ "$NOGH_RC" -eq 2 ]; then
+  pass "update --pr exits 2 when gh is absent (AUTPR-01)"
+else
+  fail "update --pr exited $NOGH_RC with gh absent — expected 2 (AUTPR-01)"
+fi
+if printf '%s\n' "$NOGH_OUT" | grep -q "gh CLI required"; then
+  pass "update --pr prints 'gh CLI required' when gh is absent (AUTPR-01)"
+else
+  fail "update --pr did not print 'gh CLI required' — got: $NOGH_OUT (AUTPR-01)"
+fi
+rm -rf "$AUTPR_DIR"
+trap - EXIT
+
+# AUTPR-01c — idempotency: stub gh pr list returns URL → print URL + exit 0
+AUTPR_STUB_BIN="$(mktemp -d)"
+printf '#!/bin/sh\nif [ "$1" = "pr" ] && [ "$2" = "list" ]; then printf "https://github.com/owner/repo/pull/42\\n"; fi\nexit 0\n' > "$AUTPR_STUB_BIN/gh"
+chmod +x "$AUTPR_STUB_BIN/gh"
+AUTPR_DIR="$(mktemp -d)"
+trap 'rm -rf "$AUTPR_DIR" "$AUTPR_STUB_BIN"' EXIT
+printf '# Test project\n' > "$AUTPR_DIR/CLAUDE.md"
+CONJURE_HOME="$CONJURE_HOME" cli/conjure init "$AUTPR_DIR" >/dev/null 2>&1
+printf 'drift\n' >> "$AUTPR_DIR/.claude/settings.json"
+IDEM_RC=0
+IDEM_OUT="$(PATH="$AUTPR_STUB_BIN:$PATH" CONJURE_HOME="$CONJURE_HOME" cli/conjure update --pr "$AUTPR_DIR" 2>&1)" || IDEM_RC=$?
+if [ "$IDEM_RC" -eq 0 ]; then
+  pass "update --pr exits 0 when PR already exists (AUTPR-01)"
+else
+  fail "update --pr exited $IDEM_RC when PR already exists — expected 0 (AUTPR-01)"
+fi
+if printf '%s\n' "$IDEM_OUT" | grep -q "https://github.com"; then
+  pass "update --pr prints existing PR URL (AUTPR-01)"
+else
+  fail "update --pr did not print existing PR URL — got: $IDEM_OUT (AUTPR-01)"
+fi
+rm -rf "$AUTPR_DIR" "$AUTPR_STUB_BIN"
+trap - EXIT
+
+# AUTPR-02a — cron template write: conjure update --cron creates workflow file
+AUTPR_DIR="$(mktemp -d)"
+trap 'rm -rf "$AUTPR_DIR"' EXIT
+CRON_RC=0
+CONJURE_HOME="$CONJURE_HOME" cli/conjure update --cron "$AUTPR_DIR" >/dev/null 2>&1 || CRON_RC=$?
+if [ "$CRON_RC" -eq 0 ]; then
+  pass "update --cron exits 0 (AUTPR-02)"
+else
+  fail "update --cron exited $CRON_RC — expected 0 (AUTPR-02)"
+fi
+if [ -f "$AUTPR_DIR/.github/workflows/conjure-update.yml" ]; then
+  pass "conjure-update.yml written (AUTPR-02)"
+else
+  fail "conjure-update.yml not found at expected path (AUTPR-02)"
+fi
+if grep -q "0 9 \* \* 1" "$AUTPR_DIR/.github/workflows/conjure-update.yml" 2>/dev/null; then
+  pass "cron schedule is Monday 09:00 UTC (AUTPR-02)"
+else
+  fail "cron schedule '0 9 * * 1' not found in conjure-update.yml (AUTPR-02)"
+fi
+if grep -q "conjure update --pr" "$AUTPR_DIR/.github/workflows/conjure-update.yml" 2>/dev/null; then
+  pass "cron template invokes conjure update --pr (AUTPR-02)"
+else
+  fail "cron template does not invoke conjure update --pr (AUTPR-02)"
+fi
+rm -rf "$AUTPR_DIR"
+trap - EXIT
+
+# AUTPR-02b — cron template idempotency: running --cron twice both exit 0
+AUTPR_DIR="$(mktemp -d)"
+trap 'rm -rf "$AUTPR_DIR"' EXIT
+CONJURE_HOME="$CONJURE_HOME" cli/conjure update --cron "$AUTPR_DIR" >/dev/null 2>&1
+CRON2_RC=0
+CONJURE_HOME="$CONJURE_HOME" cli/conjure update --cron "$AUTPR_DIR" >/dev/null 2>&1 || CRON2_RC=$?
+if [ "$CRON2_RC" -eq 0 ]; then
+  pass "update --cron is idempotent (second run exits 0) (AUTPR-02)"
+else
+  fail "update --cron second run exited $CRON2_RC — expected 0 (AUTPR-02)"
+fi
+rm -rf "$AUTPR_DIR"
+trap - EXIT
+
 # Summary
 echo
 echo "═══════════════════════════════════════════════════════════════════"
