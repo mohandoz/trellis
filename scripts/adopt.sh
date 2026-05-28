@@ -142,6 +142,13 @@ state_add_mutated() {
     --arg p "$1" --arg b "$2" --arg a "$3"
 }
 
+# state_set_last_mutated_after <after_sha> — finalize the after-hash of the most
+# recently appended mutated[] entry (WR-01: intent recorded with "pending" before
+# the mutation, after-hash written once the write completes).
+state_set_last_mutated_after() {
+  state_record '.mutated[-1].after = $a' --arg a "$1"
+}
+
 # ── dirty-tree precondition (Step 0, ADOPT-03 + SAFE-06, Pitfall 5) ───────────
 # git status --porcelain: empty = clean (catches tracked-modified AND untracked).
 # dirty && !force → exit 2 (never exit 1). dirty && force → log_step WARN + echo.
@@ -494,22 +501,45 @@ apply_step() {
       echo "✗ adopt.sh: --apply-step: write dest '$d_rel' escapes the target (rejected)" >&2
       exit 2
     fi
-    # Record before/after for rollback durability (created[] if new, mutated[] if overwrite).
+    # WR-04: reject dest paths that resolve under conjure's own control dirs (the
+    # snapshot rollback depends on) or .git/ (a code-execution foot-gun on a tool
+    # that mutates arbitrary user repos). resolve_under only guards traversal/escape.
+    case "$dest_abs/" in
+      "$target_abs"/.git/*|"$target_abs"/.conjure-adopt-backups/*|\
+      "$target_abs"/.conjure-adopt-state/*|"$target_abs"/.conjure-archive-*)
+        echo "✗ adopt.sh: --apply-step: write dest '$d_rel' targets a protected dir (rejected)" >&2
+        exit 2 ;;
+    esac
+    # WR-01 (crash durability): record intent in state BEFORE the mutation so a
+    # kill -9 between the write and the state record is still recoverable. For an
+    # overwrite, append the mutated[] entry with a "pending" after-hash first, then
+    # finalize it; for a new file, append to created[] before the write.
     local existed=0 before_sha=""
     if [ -f "$dest_abs" ]; then existed=1; before_sha="$(sha_of "$dest_abs")"; fi
-    mutate_write "$dest_abs" "$(cat "$abs_src")"
     if [ "${DRY_RUN:-0}" != "1" ]; then
       if [ "$existed" -eq 1 ]; then
-        state_add_mutated "$d_rel" "$before_sha" "$(sha_of "$dest_abs")"
+        state_add_mutated "$d_rel" "$before_sha" "pending"
       else
         state_add_created "$d_rel"
       fi
     fi
+    # CR-01: byte-exact copy (preserves the trailing newline). The old
+    # mutate_write "$dest_abs" "$(cat ...)" stripped trailing newlines, so the
+    # applied file never byte-matched the staged content and the recorded after-sha
+    # was the hash of the corrupted file. Route through the mutate.sh chokepoint.
+    mutate_write_file "$dest_abs" "$abs_src"
+    if [ "${DRY_RUN:-0}" != "1" ] && [ "$existed" -eq 1 ]; then
+      state_set_last_mutated_after "$(sha_of "$dest_abs")"
+    fi
   }
 
   # ── archive half (used by archive + extract) ────────────────────────────────
+  # CR-02: the source-to-archive is passed EXPLICITLY as $1 rather than read from the
+  # outer $src. For a plain `archive` op the caller passes "$src" (the manifest src);
+  # for `extract` the caller passes the OLD dest path so the original dest content is
+  # preserved BEFORE the write overwrites it (never the new staging source).
   apply_archive_op() {
-    local s_ref="$src" abs_src
+    local s_ref="$1" abs_src
     if [ -z "$s_ref" ]; then
       echo "✗ adopt.sh: --apply-step: archive op requires src" >&2; exit 2
     fi
@@ -532,8 +562,17 @@ apply_step() {
 
   case "$op" in
     write)   apply_write_op ;;
-    archive) apply_archive_op ;;
-    extract) apply_write_op; apply_archive_op ;;   # D-08: write-new + archive-old composed
+    archive) apply_archive_op "$src" ;;
+    extract)
+      # D-08: write-new + archive-OLD composed. CR-02: archive the OLD dest content
+      # FIRST (before the write overwrites it), then write the staging source to dest.
+      # Never archive the staging source — that would destroy the new content and lose
+      # the original. The OLD dest is archived only if it exists.
+      if [ -n "$dest" ] && [ -f "$target_abs/$dest" ]; then
+        apply_archive_op "$dest"
+      fi
+      apply_write_op
+      ;;
   esac
 
   log_step RESTRUCTURE "applied $op step '$id'${dest:+ → $dest}${src:+ (src $src)}"

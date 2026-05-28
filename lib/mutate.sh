@@ -9,6 +9,7 @@
 #   mutate_mkdir   <dir>
 #   mutate_cp      <src> <dest>
 #   mutate_write   <dest> <content> [--append]
+#   mutate_write_file <dest> <src>
 #   mutate_rm      <path>
 #   mutate_archive <src_abs> <archive_root>
 #   mutate_summary   # call at end of each script
@@ -63,6 +64,24 @@ mutate_write() {
   else
     printf '%s' "$content" > "$dest"
   fi
+}
+
+# mutate_write_file <dest> <src>
+# Byte-exact file copy chokepoint (preserves trailing newline + all bytes verbatim,
+# unlike mutate_write "$dest" "$(cat src)" which strips trailing newlines via the
+# lossy command substitution). Routes file-to-file writes through mutate.sh so the
+# mutation invariant + DRY_RUN awareness hold for the --apply-step write/extract seam.
+# In dry-run: prints [dry-run] would write <dest> (from <src>), increments counter.
+# In live mode: cp <src> <dest> (overwrites; caller is responsible for path safety).
+mutate_write_file() {
+  local dest="$1"
+  local src="$2"
+  if [ "${DRY_RUN:-0}" = "1" ]; then
+    echo "[dry-run] would write $dest (from $src)"
+    CONJURE_DRY_MUTATION_COUNT=$((CONJURE_DRY_MUTATION_COUNT + 1))
+    return 0
+  fi
+  cp "$src" "$dest"
 }
 
 # mutate_rm <path>
