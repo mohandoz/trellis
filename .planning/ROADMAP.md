@@ -77,7 +77,19 @@ Plans:
   4. Running `conjure adopt --rollback` after a live run restores every mutated file; the sha256 of each restored file matches its sha256 recorded before the run; `RESTRUCTURE-LOG.md` contains a `[ROLLBACK]` entry
   5. Sending SIGKILL mid-run (via `kill -9`) and then re-running `conjure adopt` detects the partial `.conjure-adopt-state` manifest and offers `[r]ollback / [c]ontinue / [s]tart-fresh`
 
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+**Wave 0** *(test infrastructure — gates all later verification)*
+
+- [ ] 22-01-PLAN.md — Wave 0: Phase 22 test block in tests/run.sh + synthetic restructure_steps[] manifest fixture + git-init dirty-tree & SIGKILL recovery harnesses
+
+**Wave 1** *(blocked on Wave 0)*
+
+- [ ] 22-02-PLAN.md — Wave 1: cmd_adopt dispatcher + scripts/adopt.sh 5-step pipeline (preconditions/dirty-tree → snapshot → inventory dry-run temp manifest → scaffold → audit → report) + .conjure-adopt-state schema + INT/TERM trap + self-copy guard
+
+**Wave 2** *(blocked on Wave 1 — shares scripts/adopt.sh)*
+
+- [ ] 22-03-PLAN.md — Wave 2: --rollback (D-01 restore→delete-created→sha256-verify) + partial-run recovery prompt (D-12/13/14) + --apply-step/--update-manifest op-executor (D-05/06/07/08)
 
 ### Phase 23: Restructure Skill + Safety Gates
 
@@ -120,6 +132,6 @@ Plans:
 | 19. Auto-PR | v0.5.0 | 2/2 | Complete | 2026-05-26 |
 | 20. Windows + CI Gate | v0.5.0 | 2/2 | Complete | 2026-05-28 |
 | 21. Foundation Libs + Inventory | v0.6.0 | 4/4 | Complete    | 2026-05-28 |
-| 22. `conjure adopt` CLI Core + Rollback | v0.6.0 | 0/TBD | Not started | - |
+| 22. `conjure adopt` CLI Core + Rollback | v0.6.0 | 0/3 | Planned | - |
 | 23. Restructure Skill + Safety Gates | v0.6.0 | 0/TBD | Not started | - |
 | 24. Integration Tests + Argus Fixture | v0.6.0 | 0/TBD | Not started | - |
