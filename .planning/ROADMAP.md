@@ -132,6 +132,6 @@ Plans:
 | 19. Auto-PR | v0.5.0 | 2/2 | Complete | 2026-05-26 |
 | 20. Windows + CI Gate | v0.5.0 | 2/2 | Complete | 2026-05-28 |
 | 21. Foundation Libs + Inventory | v0.6.0 | 4/4 | Complete    | 2026-05-28 |
-| 22. `conjure adopt` CLI Core + Rollback | v0.6.0 | 3/3 | Complete   | 2026-05-28 |
+| 22. `conjure adopt` CLI Core + Rollback | v0.6.0 | 3/3 | Complete    | 2026-05-28 |
 | 23. Restructure Skill + Safety Gates | v0.6.0 | 0/TBD | Not started | - |
 | 24. Integration Tests + Argus Fixture | v0.6.0 | 0/TBD | Not started | - |
