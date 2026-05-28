@@ -81,7 +81,7 @@ Plans:
 Plans:
 **Wave 0** *(test infrastructure — gates all later verification)*
 
-- [ ] 22-01-PLAN.md — Wave 0: Phase 22 test block in tests/run.sh + synthetic restructure_steps[] manifest fixture + git-init dirty-tree & SIGKILL recovery harnesses
+- [x] 22-01-PLAN.md — Wave 0: Phase 22 test block in tests/run.sh + synthetic restructure_steps[] manifest fixture + git-init dirty-tree & SIGKILL recovery harnesses
 
 **Wave 1** *(blocked on Wave 0)*
 
@@ -132,6 +132,6 @@ Plans:
 | 19. Auto-PR | v0.5.0 | 2/2 | Complete | 2026-05-26 |
 | 20. Windows + CI Gate | v0.5.0 | 2/2 | Complete | 2026-05-28 |
 | 21. Foundation Libs + Inventory | v0.6.0 | 4/4 | Complete    | 2026-05-28 |
-| 22. `conjure adopt` CLI Core + Rollback | v0.6.0 | 0/3 | Planned | - |
+| 22. `conjure adopt` CLI Core + Rollback | v0.6.0 | 1/3 | In Progress|  |
 | 23. Restructure Skill + Safety Gates | v0.6.0 | 0/TBD | Not started | - |
 | 24. Integration Tests + Argus Fixture | v0.6.0 | 0/TBD | Not started | - |
