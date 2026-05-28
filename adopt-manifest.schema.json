@@ -1,0 +1,198 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/mohandoz/conjure/adopt-manifest.schema.json",
+  "title": "Conjure Adopt Manifest",
+  "description": "Machine-readable inventory manifest produced by conjure adopt (Phase 21). Version 1.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "conjure_version",
+    "target",
+    "snapshot_path",
+    "summary",
+    "files",
+    "size_cap_violations",
+    "harness_missing_layers",
+    "restructure_steps"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "description": "Schema version identifier. Currently '1'."
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 UTC timestamp when the manifest was generated."
+    },
+    "conjure_version": {
+      "type": "string",
+      "description": "Conjure version that produced this manifest."
+    },
+    "target": {
+      "type": "string",
+      "description": "Absolute path to the repository root that was inventoried."
+    },
+    "snapshot_path": {
+      "type": "string",
+      "description": "Absolute path to the snapshot backup directory. Empty string at inventory time; filled by scripts/adopt.sh."
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "total_files",
+        "scan_capped",
+        "total_found",
+        "core",
+        "skill",
+        "agent",
+        "planning-doc",
+        "reference-doc",
+        "unknown"
+      ],
+      "properties": {
+        "total_files": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of files included in files[] array (after cap)."
+        },
+        "scan_capped": {
+          "type": "boolean",
+          "description": "True when total_found > 500 and the scan was capped at 500 (D-08)."
+        },
+        "total_found": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Raw count of markdown files found before the 500-file cap was applied (D-08)."
+        },
+        "core": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Count of files classified as 'core' (CLAUDE.md, settings.json)."
+        },
+        "skill": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Count of files classified as 'skill'."
+        },
+        "agent": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Count of files classified as 'agent'."
+        },
+        "planning-doc": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Count of files classified as 'planning-doc'."
+        },
+        "reference-doc": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Count of files classified as 'reference-doc'."
+        },
+        "unknown": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Count of files classified as 'unknown'."
+        }
+      }
+    },
+    "files": {
+      "type": "array",
+      "description": "Per-file inventory entries (up to 500 entries per D-08).",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "path",
+          "classification",
+          "line_count",
+          "size_bytes",
+          "size_cap_exceeded",
+          "size_cap_limit",
+          "linked_from"
+        ],
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Relative path from the repository root."
+          },
+          "classification": {
+            "type": "string",
+            "enum": ["core", "skill", "agent", "planning-doc", "reference-doc", "unknown"],
+            "description": "Deterministic bucket classification per D-01."
+          },
+          "line_count": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of lines in the file."
+          },
+          "size_bytes": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "File size in bytes."
+          },
+          "size_cap_exceeded": {
+            "type": "boolean",
+            "description": "True when line_count exceeds the size cap for this file's classification (D-09). Named 'size_cap_exceeded', not 'cap_exceeded'."
+          },
+          "size_cap_limit": {
+            "description": "The applicable line count cap for this file's classification. Null for buckets without a cap (reference-doc, planning-doc, unknown).",
+            "oneOf": [
+              {"type": "integer", "minimum": 1},
+              {"type": "null"}
+            ]
+          },
+          "linked_from": {
+            "type": "array",
+            "description": "List of files that link to this file. ['CLAUDE.md'] if linked via D-06 pass, else [].",
+            "items": {"type": "string"}
+          }
+        }
+      }
+    },
+    "size_cap_violations": {
+      "type": "array",
+      "description": "Entries for files where size_cap_exceeded is true.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "line_count", "cap", "overage"],
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Relative path from the repository root."
+          },
+          "line_count": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Actual line count of the file."
+          },
+          "cap": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "The applicable size cap that was exceeded."
+          },
+          "overage": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Number of lines over the cap (line_count - cap)."
+          }
+        }
+      }
+    },
+    "harness_missing_layers": {
+      "type": "array",
+      "description": "List of harness layers not found in the repository (e.g. 'skills', 'agents').",
+      "items": {"type": "string"}
+    },
+    "restructure_steps": {
+      "type": "array",
+      "description": "Proposed restructure steps. Always empty at inventory time; populated by the restructure skill in Phase 23.",
+      "items": {}
+    }
+  }
+}

@@ -1,0 +1,10 @@
+# EXPECT — golden-file assertions for brownfield-simple fixture audit (TEST-03)
+# Each non-comment line is a regex pattern matched against audit-setup.sh output.
+CLAUDE\.md:.*lines
+CLAUDE\.md: no @imports
+\.claude/ directory exists
+\.claude/skills/: 1 skills
+\.claude/agents/: 1 agents
+settings\.json: valid JSON
+docs/ARCHITECTURE\.md present
+docs/RUNBOOK\.md present

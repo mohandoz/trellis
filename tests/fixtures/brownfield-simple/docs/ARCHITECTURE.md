@@ -1,0 +1,3 @@
+# Architecture
+
+Brownfield-simple fixture.
