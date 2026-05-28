@@ -237,17 +237,136 @@ report() {
   echo "  Note:        --rollback restores from the filesystem snapshot, NOT git (SAFE-06)"
 }
 
-# ── Wave 2 stubs (Plan 03 fills these bodies; wired here so dispatch is complete) ──
+# ── rollback (D-01: 3-step full-restore-plus-delete-created → zero-diff) ──────
+# D-01 exactly: (1) snapshot_rollback whole-tree restore (un-archives originals +
+# restores mutated, since both live in the snapshot); (2) mutate_rm every created[]
+# path (scaffolded harness files the snapshot can't undo — D-02 keeps conjure's own
+# dirs out of created[]); (3) sha256(p)==before for every mutated[] path. Then
+# log_step ROLLBACK and delete ONLY .conjure-adopt-state (D-04 keeps snapshot/
+# archive/log). Yields Phase 24's sha256-identical before/after (D-03 scope).
+#
+# CRITICAL ordering (CR-2-adjacent): the snapshot was taken at the "snapshot" step,
+# BEFORE scaffold, so it carries a STALE state.json with an empty created[]. The
+# whole-tree restore overwrites the live state.json with that stale copy — so
+# created[]/mutated[] MUST be captured into temp files BEFORE the restore, or the
+# delete-created + verify loops read the wrong (emptied) arrays.
 rollback_path() {
-  echo "adopt.sh: --rollback is not yet implemented (Wave 2 / Plan 03)" >&2
-  exit 2
+  if [ ! -f "$STATE_PATH" ]; then
+    echo "✗ adopt.sh: --rollback: no .conjure-adopt-state found — nothing to roll back" >&2
+    exit 2
+  fi
+  local snap
+  snap="$(jq -r '.snapshot_path // ""' "$STATE_PATH" 2>/dev/null)"
+  if [ -z "$snap" ] || [ ! -d "$snap" ]; then
+    echo "✗ adopt.sh: --rollback: no snapshot recorded at '${snap:-(none)}' — nothing to restore" >&2
+    exit 2
+  fi
+
+  # D-15 / SAFE-06: surface that rollback restores from the FILESYSTEM snapshot, not git.
+  echo "⚠ --rollback restores from the filesystem snapshot at $snap — NOT from git (SAFE-06)"
+
+  # Capture created[]/mutated[] BEFORE the restore clobbers state.json (see header note).
+  local created_list mutated_list
+  created_list="$(mktemp)"; mutated_list="$(mktemp)"
+  jq -r '.created[]?' "$STATE_PATH" > "$created_list" 2>/dev/null || true
+  jq -r '.mutated[]? | "\(.path)\t\(.before)"' "$STATE_PATH" > "$mutated_list" 2>/dev/null || true
+
+  # Set the log path so snapshot_rollback auto-logs ROLLBACK and our log_step lands here.
+  RESTRUCTURE_LOG_PATH="$TARGET/RESTRUCTURE-LOG.md"
+
+  # Step 1: whole-tree restore (restores mutated files + un-archives originals).
+  if ! snapshot_rollback "$snap" "$TARGET"; then
+    echo "✗ adopt.sh: --rollback: snapshot restore failed from $snap" >&2
+    rm -f "$created_list" "$mutated_list"
+    exit 2
+  fi
+  # The snapshot dir carries a .snapshot-meta.json at its root; cp -a snapshot/.
+  # leaks it into the target root. Remove it so the post-rollback tree is clean (D-03).
+  rm -f "$TARGET/.snapshot-meta.json"
+
+  # Step 2: delete every scaffolded created[] path (D-02), then prune any directory
+  # that became empty AND is not present in the snapshot (scaffold-created dirs the
+  # snapshot can't account for) — keeps the post-rollback tree byte-identical (D-03).
+  local created_count=0 p
+  while IFS= read -r p; do
+    [ -n "$p" ] || continue
+    mutate_rm "$TARGET/$p"
+    created_count=$((created_count + 1))
+  done < "$created_list"
+  # Bottom-up empty-dir prune (longest paths first). Only remove dirs absent from the
+  # snapshot — any original dir (even if it ended up empty) lives in the snapshot and
+  # is preserved. rmdir is a no-op on non-empty dirs, so this never deletes content.
+  local d rel
+  while IFS= read -r d; do
+    [ -n "$d" ] || continue
+    [ "$d" = "$TARGET" ] && continue
+    rel="${d#"$TARGET"/}"
+    [ -d "$snap/$rel" ] && continue
+    rmdir "$d" 2>/dev/null || true
+  done < <(find "$TARGET" -type d \
+              -not -path "$TARGET/.conjure-adopt-backups*" \
+              -not -path "$TARGET/.conjure-archive-*" \
+              -not -path "$TARGET/.conjure-adopt-state*" \
+              2>/dev/null | awk '{ print length, $0 }' | sort -rn | cut -d' ' -f2-)
+
+  # Step 3: verify every mutated[] file's sha256 == recorded before-hash (SAFE-02).
+  local mismatch=0 path before
+  while IFS=$'\t' read -r path before; do
+    [ -n "$path" ] || continue
+    if [ "$(sha_of "$TARGET/$path")" != "$before" ]; then
+      echo "✗ adopt.sh: --rollback: sha256 mismatch after restore: $path" >&2
+      mismatch=1
+    fi
+  done < "$mutated_list"
+  rm -f "$created_list" "$mutated_list"
+  if [ "$mismatch" -ne 0 ]; then
+    echo "✗ adopt.sh: --rollback: one or more files do not match their pre-adopt hash — restore incomplete" >&2
+    exit 2
+  fi
+
+  log_step ROLLBACK "restored from $snap; deleted $created_count created path(s)"
+  # D-04: keep snapshot/archive/RESTRUCTURE-LOG.md; delete ONLY the state dir so a
+  # stale state file never triggers a false recovery prompt on the next run.
+  rm -rf "$STATE_DIR"
+  echo "✓ rollback complete — restored from snapshot, removed $created_count scaffolded file(s)"
 }
+
+# ── partial-run recovery (D-12/D-13/D-14, SAFE-05) ────────────────────────────
+# recovery_prompt <last_step>: invoked when a prior partial .conjure-adopt-state is
+# detected with no explicit recovery flag. Non-TTY callers never reach here (the
+# mode dispatch exits 2 with the flag list first, D-13). In a TTY (or with the
+# CONJURE_FORCE_INTERACTIVE escape hatch) loop the [r]/[c]/[s] prompt reading from
+# /dev/tty, with NO default — unknown/empty input re-prompts (D-14).
 recovery_prompt() {
-  echo "adopt.sh: partial-run recovery is not yet implemented (Wave 2 / Plan 03)" >&2
-  echo "  last completed: ${1:-unknown}" >&2
-  echo "  non-interactive — choose: --rollback | --resume | --start-fresh" >&2
-  exit 2
+  local last_step="${1:-unknown}"
+  echo "conjure adopt: partial run detected (last completed: $last_step)" >&2
+  local choice
+  while true; do
+    read -r -p "  [r]ollback / [c]ontinue / [s]tart-fresh: " choice < /dev/tty
+    case "$choice" in
+      r|rollback)    rollback_path; break ;;
+      c|continue)    resume_pipeline; break ;;
+      s|start-fresh) rm -rf "$STATE_DIR"; run_pipeline; break ;;
+      *)             echo "  enter r, c, or s" ;;   # D-14: no default; empty re-prompts
+    esac
+  done
 }
+
+# resume_pipeline (= --resume, and the [c]ontinue choice; D-12): continue at the
+# first incomplete step REUSING the existing snapshot dir. Phase 22's forward
+# pipeline is short and its mutating steps are idempotent (init-project.sh never
+# overwrites, inventory/audit re-emit cleanly), so resume re-enters run_pipeline
+# with CONJURE_ADOPT_REUSE_SNAPSHOT=1 — run_pipeline then skips snapshot_guarded and
+# reuses the recorded snapshot_path instead of creating a second backup (CR-2).
+resume_pipeline() {
+  if [ ! -f "$STATE_PATH" ]; then
+    echo "✗ adopt.sh: --resume: no .conjure-adopt-state to resume from" >&2
+    exit 2
+  fi
+  export CONJURE_ADOPT_REUSE_SNAPSHOT=1
+  run_pipeline
+}
+
 apply_step() {
   echo "adopt.sh: --apply-step is not yet implemented (Wave 2 / Plan 03)" >&2
   exit 2
@@ -267,7 +386,16 @@ run_pipeline() {
   # Step 0.5: init the log FIRST so the dirty-tree --force WARN (and snapshot/
   # inventory auto-logs) land in RESTRUCTURE-LOG.md (SAFE-07). log_init is
   # DRY_RUN-aware (mutate_write), so dry-run writes nothing under the target.
-  log_init "$TARGET"
+  # On --resume (D-12) the log + state already exist from the interrupted run; do
+  # NOT re-init either (log_init replaces the file; state_init resets created[]),
+  # just set the path so subsequent log_step appends continue the durable trail.
+  if [ "${CONJURE_ADOPT_REUSE_SNAPSHOT:-0}" = "1" ] && [ -f "$TARGET/RESTRUCTURE-LOG.md" ]; then
+    # Consumed by log_step/snapshot_* in the sourced libs (invisible to shellcheck).
+    # shellcheck disable=SC2034
+    RESTRUCTURE_LOG_PATH="$TARGET/RESTRUCTURE-LOG.md"
+  else
+    log_init "$TARGET"
+  fi
 
   # Step 0: preconditions (dirty-tree gate). Runs for real in dry-run too (D-10).
   # On exit-2 (dirty + no --force) no state has been written yet, so a refused
@@ -276,10 +404,15 @@ run_pipeline() {
   precondition_git
 
   # State (SAFE-04 crash durability) — only after the gate passes; dry-run writes
-  # zero state (ADOPT-02 zero-writes-under-target).
+  # zero state (ADOPT-02 zero-writes-under-target). On resume, reuse the existing
+  # state (D-12) rather than re-initializing it.
   if [ "${DRY_RUN:-0}" != "1" ]; then
-    state_init
-    state_set_step preconditions completed
+    if [ "${CONJURE_ADOPT_REUSE_SNAPSHOT:-0}" = "1" ] && [ -f "$STATE_PATH" ]; then
+      state_set_step preconditions completed
+    else
+      state_init
+      state_set_step preconditions completed
+    fi
   fi
 
   # Capture CLAUDE.md "before" line count from the live tree (Pitfall 6: wc -l <).
@@ -297,14 +430,21 @@ run_pipeline() {
   fi
 
   # Step 1: snapshot (SAFE-01). Write state BEFORE the mutating step (Pattern 3).
+  # On --resume (D-12) REUSE the existing snapshot — a second snapshot would back up
+  # the already-mutated tree (CR-2). Read snapshot_path back from the durable state.
   echo "Step 2/5 snapshot"
-  if [ "${DRY_RUN:-0}" != "1" ]; then
-    state_set_step snapshot started
-  fi
-  snapshot_guarded
-  if [ "${DRY_RUN:-0}" != "1" ]; then
-    state_set_snapshot "$CONJURE_SNAPSHOT_PATH"
-    state_set_step snapshot completed
+  if [ "${CONJURE_ADOPT_REUSE_SNAPSHOT:-0}" = "1" ] && [ -f "$STATE_PATH" ]; then
+    CONJURE_SNAPSHOT_PATH="$(jq -r '.snapshot_path // ""' "$STATE_PATH" 2>/dev/null)"
+    echo "  [resume] reusing existing snapshot → ${CONJURE_SNAPSHOT_PATH:-(none recorded)}"
+  else
+    if [ "${DRY_RUN:-0}" != "1" ]; then
+      state_set_step snapshot started
+    fi
+    snapshot_guarded
+    if [ "${DRY_RUN:-0}" != "1" ]; then
+      state_set_snapshot "$CONJURE_SNAPSHOT_PATH"
+      state_set_step snapshot completed
+    fi
   fi
 
   # Step 2: inventory (ADOPT-01). Read-only scan, then emit the manifest.
@@ -415,8 +555,8 @@ elif [ -n "${CONJURE_ADOPT_APPLY_STEP:-}" ]; then
 elif [ "${CONJURE_ADOPT_UPDATE_MANIFEST:-0}" = "1" ]; then
   update_manifest
 elif [ "${CONJURE_ADOPT_RESUME:-0}" = "1" ]; then
-  # Wave 2 fills resume; for now route through the stub recovery handler.
-  recovery_prompt "$( [ -f "$STATE_PATH" ] && jq -r '.current_step // "unknown"' "$STATE_PATH" 2>/dev/null || echo unknown )"
+  # --resume (D-12): continue at the next incomplete step, reusing the snapshot.
+  resume_pipeline
 elif [ "${CONJURE_ADOPT_START_FRESH:-0}" = "1" ]; then
   rm -rf "$STATE_DIR"
   run_pipeline

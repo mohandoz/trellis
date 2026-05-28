@@ -2559,11 +2559,11 @@ if [ "$P22_ADOPT_OK" -ne 1 ]; then
 else
   P22_RB_TARGET="$(mktemp -d)"
   P22_RB_PRE="$(mktemp -d)"   # pristine pre-adopt copy for the zero-diff comparison
-  trap 'rm -rf "$P22_RB_TARGET" "$P22_RB_PRE"' EXIT
+  P22_RB_HASHES="$(mktemp)"   # hash record OUTSIDE both trees (else it pollutes the diff)
+  trap 'rm -rf "$P22_RB_TARGET" "$P22_RB_PRE"; rm -f "$P22_RB_HASHES"' EXIT
   cp -r "$P22_FIXTURE/." "$P22_RB_TARGET/"
   cp -r "$P22_FIXTURE/." "$P22_RB_PRE/"
   # Record sha256 of every pre-adopt file (relative paths) for per-file verify.
-  P22_RB_HASHES="$P22_RB_PRE/.p22-hashes"
   ( cd "$P22_RB_TARGET" && find . -type f -not -path './.git/*' | sort | while IFS= read -r f; do
       printf '%s  %s\n' "$(p22_sha "$f")" "$f"
     done ) > "$P22_RB_HASHES" 2>/dev/null
