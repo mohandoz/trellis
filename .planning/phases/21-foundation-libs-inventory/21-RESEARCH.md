@@ -641,19 +641,19 @@ if [ "$LINES" -gt "${AGENT_MD_CAP}" ]; then ...
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **RESTRUCTURE-LOG.md exact path and header format**
+1. **RESTRUCTURE-LOG.md exact path and header format** — **RESOLVED:** repo root (`<target>/RESTRUCTURE-LOG.md`) per Plan 21-02 Task 1 action, matching ARCHITECTURE.md sample.
    - What we know: ARCHITECTURE.md §5 shows a sample header with `conjure:`, `target:`, `started:`, `snapshot:` YAML-ish fields, followed by `---` separator and entries.
    - What's unclear: whether the log should live at `<target>/RESTRUCTURE-LOG.md` (repo root) or `<target>/.claude/RESTRUCTURE-LOG.md`. Repo root is more discoverable; `.claude/` is more contained.
    - Recommendation: Planner's discretion — repo root is recommended for discoverability (matches ARCHITECTURE.md sample).
 
-2. **sha256 cross-platform command selection**
+2. **sha256 cross-platform command selection** — **RESOLVED:** Plan 21-02 Task 2 uses `command -v sha256sum` → `shasum -a 256` fallback → `return 1` with a clear abort message if neither is found.
    - What we know: `sha256sum` (Linux/GNU) and `shasum -a 256` (macOS) both produce the same hash. Neither is guaranteed everywhere.
    - What's unclear: Whether the project's CI matrix includes platforms that have neither (e.g., minimal Alpine without coreutils).
    - Recommendation: Add a preflight check for sha256 capability in `lib/caps.sh` or `mutate_archive`; abort with a clear message if neither is found rather than silently failing the verify step.
 
-3. **adopt-manifest.json location: repo root vs .claude/**
+3. **adopt-manifest.json location: repo root vs .claude/** — **RESOLVED:** repo root; `inventory_emit_manifest` writes to a caller-supplied `output_path` (Plan 21-03 Task 2). `.claudeignore` exclusion deferred to Phase 22 (adopt.sh owns gitignore/claudeignore changes — out of Phase 21 scope).
    - What we know: ARCHITECTURE.md places it at `<target>/adopt-manifest.json` (repo root). The CONTEXT.md notes "lives at repo root so the skill can reference it with a simple Read tool call."
    - What's unclear: Whether `.claudeignore` should exclude it to prevent it from being eagerly loaded into context.
    - Recommendation: Repo root is correct per CONTEXT.md. Plan should add `adopt-manifest.json` to `.claudeignore` (or note this for Phase 22 when adopt.sh modifies gitignore/claudeignore).
