@@ -2823,7 +2823,10 @@ else
   rm -rf "$P22_SC_TARGET/.conjure-adopt-state"
   DRY_RUN=0 CONJURE_HOME="$CONJURE_HOME" bash "$P22_ADOPT_SH" "$P22_SC_TARGET" >/dev/null 2>&1
   # Pitfall 3: a snapshot must not contain a nested .conjure-adopt-backups dir.
-  P22_SC_NEST="$(find "$P22_SC_TARGET/.conjure-adopt-backups" -path '*/.conjure-adopt-backups/*' 2>/dev/null | head -1)"
+  # The backup root is itself named .conjure-adopt-backups, so search for a
+  # .conjure-adopt-backups directory at depth >= 2 (i.e. INSIDE a snapshot dir);
+  # any hit means a snapshot recursively copied the backup root into itself.
+  P22_SC_NEST="$(find "$P22_SC_TARGET/.conjure-adopt-backups" -mindepth 2 -name '.conjure-adopt-backups' -type d 2>/dev/null | head -1)"
   if [ -z "$P22_SC_NEST" ]; then
     pass "self-copy: two adopts produce no nested .conjure-adopt-backups (Pitfall 3/SAFE-01)"
   else

@@ -10,6 +10,11 @@ CONJURE_INVENTORY_ITEMS="${CONJURE_INVENTORY_ITEMS:-}"
 CONJURE_INVENTORY_TOTAL_FOUND="${CONJURE_INVENTORY_TOTAL_FOUND:-0}"
 CONJURE_INVENTORY_SCAN_CAPPED="${CONJURE_INVENTORY_SCAN_CAPPED:-false}"
 
+# D-08 scan cap. Default 500 (Phase 21 behavior unchanged). adopt.sh raises this
+# when --full-inventory is passed (CONJURE_ADOPT_FULL_INVENTORY=1) so the cap the
+# hint message already advertises ("rerun with --full-inventory") is real.
+CONJURE_INVENTORY_MAX="${CONJURE_INVENTORY_MAX:-500}"
+
 # extract_claude_md_links <target_abs>
 # Extracts outbound ](path) links from CLAUDE.md at <target_abs>/CLAUDE.md.
 # Writes one relative path per line to a temp file.
@@ -143,6 +148,10 @@ emit_file_entry() {
 inventory_scan() {
   local target="$1"
 
+  # Evaluate the cap at call-time so adopt.sh's --full-inventory export takes
+  # effect even though the lib was sourced earlier (default 500 — Phase 21 behavior).
+  local scan_max="${CONJURE_INVENTORY_MAX:-500}"
+
   # D-08 two-step count: count total markdown files (before cap) using find | wc -l
   local total_found
   total_found="$(find "${target}" -name '*.md' \
@@ -190,15 +199,15 @@ inventory_scan() {
   # Note: root CLAUDE.md is in pass1; any other CLAUDE.md (e.g. in docs/) goes in pass3 via -not -name 'CLAUDE.md' exclusion above
   # That's correct per the spec — only root CLAUDE.md is special.
 
-  # Concatenate pass1 + pass2 + pass3; deduplicate preserving order; take first 500 lines
+  # Concatenate pass1 + pass2 + pass3; deduplicate preserving order; take first N lines
   cat "${_pass1}" "${_pass2}" "${_pass3}" > "${_combined}"
   # Deduplicate (preserving order) using awk
-  awk '!seen[$0]++' "${_combined}" | head -500 > "${_processing_list}"
+  awk '!seen[$0]++' "${_combined}" | head -n "${scan_max}" > "${_processing_list}"
 
   rm -f "${_pass1}" "${_pass2}" "${_pass3}" "${_combined}"
 
   # Set scan_capped flag
-  if [ "${total_found}" -gt 500 ]; then
+  if [ "${total_found}" -gt "${scan_max}" ]; then
     CONJURE_INVENTORY_SCAN_CAPPED="true"
   else
     CONJURE_INVENTORY_SCAN_CAPPED="false"
@@ -423,6 +432,7 @@ inventory_emit_manifest() {
     "${planning_count}" "${reference_count}" "${unknown_count}"
 
   if [ "${scan_capped}" = "true" ]; then
-    printf '%s found, scanned 500 — rerun with --full-inventory to process all files\n' "${total_found}"
+    printf '%s found, scanned %s — rerun with --full-inventory to process all files\n' \
+      "${total_found}" "${CONJURE_INVENTORY_MAX:-500}"
   fi
 }
