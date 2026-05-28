@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v0.6.0
 milestone_name: Safe Brownfield Adoption
 status: planning
-last_updated: "2026-05-28T14:09:47.903Z"
+last_updated: "2026-05-28"
 last_activity: 2026-05-28
 progress:
-  total_phases: 0
+  total_phases: 4
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -20,20 +20,22 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-28)
 
 **Core value:** A developer can turn any repo into a production-grade, eval-backed Claude Code harness with one trustworthy command — and keep it healthy over time.
-**Current focus:** Planning next milestone (v0.6.0) — run `/gsd-new-milestone`
+**Current focus:** Phase 21 ready to plan — Foundation Libs + Inventory
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-05-28 — Milestone v0.6.0 started
+Phase: 21 of 24 (Foundation Libs + Inventory)
+Plan: — of —
+Status: Ready to plan
+Last activity: 2026-05-28 — Roadmap created for v0.6.0; 23 requirements mapped to Phases 21–24
+
+Progress: [░░░░░░░░░░] 0%
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 45 (v0.3.0: 22, v0.4.0: 23)
+- Total plans completed: 55 (v0.3.0: 22, v0.4.0: 23, v0.5.0: 10)
 - Average duration: — min
 - Total execution time: —
 
@@ -43,22 +45,22 @@ Last activity: 2026-05-28 — Milestone v0.6.0 started
 |-------|-------|-------|----------|
 | v0.3.0 phases 01–07 | 22 | - | - |
 | v0.4.0 phases 08–15.1 | 23 | - | - |
-| Phase 16-prerequisites P01 | 8 min | 2 tasks / 2 files | — |
+| v0.5.0 phases 16–20 | 10 | - | - |
 
 **Recent Trend:**
-
 - Last 5 plans: —
 - Trend: —
-
-| Phase 18-conflict-resolution P01 | 15m | 1 tasks | 1 files |
-| Phase 18-conflict-resolution P02 | 2 | 2 tasks | 2 files |
-| Phase 19-auto-pr P01 | 2min | 1 tasks | 1 files |
 
 ## Accumulated Context
 
 ### Decisions
 
-Full v0.5.0 decision log in PROJECT.md (Key Decisions). All v0.5.0 ordering and design decisions resolved at milestone close.
+Full decision log in PROJECT.md Key Decisions table. Key v0.6.0 design decisions:
+
+- Split responsibility: CLI owns all filesystem mutations; restructure skill owns all LLM judgment
+- Skill restricted to `[Read, Bash]` — cannot call `Write`/`Edit` on project files directly
+- `snapshot_create` uses raw `cp -R`, NOT `mutate_cp` — snapshot is the safety primitive, not a mutation
+- Build order is hard: log.sh → snapshot.sh → inventory.sh → adopt.sh → skill → tests
 
 ### Pending Todos
 
@@ -66,7 +68,9 @@ None.
 
 ### Blockers/Concerns
 
-None — both v0.5.0 design blockers (Phase 17 drift classifier, Phase 19 merge↔push integration) resolved during execution. Cross-platform test hygiene flagged in PROJECT.md Key Decisions as a watch item.
+- Phase 22 open question: step-id format (slug vs UUID) — decide during planning before coding `adopt.sh`
+- Phase 22 open question: `--apply-step` / `--update-manifest` callback contract JSON schema validation depth
+- Phase 23 open question: skill body must fit in ≤200 lines while covering manifest load, invariant check, plan proposal, approval loop, patch write, final audit — may need a planning spike
 
 ## Deferred Items
 
@@ -74,7 +78,6 @@ None — both v0.5.0 design blockers (Phase 17 drift classifier, Phase 19 merge�
 |----------|------|--------|-------------|
 | Docker | `conjure:full` tag with optional Go/Rust tools | Deferred to v0.4.x | v0.4.0 scoping |
 | Overlay | `compatible-kit-version` manifest field | Deferred to v0.4.x | v0.4.0 scoping |
-| Publish | `--dry-run` for `conjure publish` / `publish-skill` | Deferred | v0.4.0 scoping |
 | verification_gap | Phase 10 VERIFICATION.md — human_needed (claude CLI required) | human_needed | v0.4.0 close |
 | verification_gap | Phase 13 VERIFICATION.md — human_needed (live brew install) | human_needed | v0.4.0 close |
 | verification_gap | Phase 14 VERIFICATION.md — human_needed (Docker + Windows CI) | human_needed | v0.4.0 close |
@@ -82,10 +85,6 @@ None — both v0.5.0 design blockers (Phase 17 drift classifier, Phase 19 merge�
 
 ## Session Continuity
 
-Last session: 2026-05-26T04:03:53.273Z
-Stopped at: 16-01-PLAN.md complete — mutate_rm in lib/mutate.sh + 4 regression tests passing
+Last session: 2026-05-28
+Stopped at: Roadmap written — Phases 21–24 defined, 23 requirements mapped, STATE.md initialized
 Resume file: None
-
-## Operator Next Steps
-
-- Start the next milestone with /gsd-new-milestone

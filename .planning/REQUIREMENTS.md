@@ -78,35 +78,35 @@ Which phases cover which requirements. Populated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ADOPT-01 | TBD | Pending |
-| ADOPT-02 | TBD | Pending |
-| ADOPT-03 | TBD | Pending |
-| ADOPT-04 | TBD | Pending |
-| ADOPT-05 | TBD | Pending |
-| ADOPT-06 | TBD | Pending |
-| SAFE-01 | TBD | Pending |
-| SAFE-02 | TBD | Pending |
-| SAFE-03 | TBD | Pending |
-| SAFE-04 | TBD | Pending |
-| SAFE-05 | TBD | Pending |
-| SAFE-06 | TBD | Pending |
-| SAFE-07 | TBD | Pending |
-| INV-01 | TBD | Pending |
-| INV-02 | TBD | Pending |
-| INV-03 | TBD | Pending |
-| INV-04 | TBD | Pending |
-| RESTR-01 | TBD | Pending |
-| RESTR-02 | TBD | Pending |
-| RESTR-03 | TBD | Pending |
-| RESTR-04 | TBD | Pending |
-| RESTR-05 | TBD | Pending |
-| RESTR-06 | TBD | Pending |
+| ADOPT-01 | Phase 22 | Pending |
+| ADOPT-02 | Phase 22 | Pending |
+| ADOPT-03 | Phase 21 | Pending |
+| ADOPT-04 | Phase 22 | Pending |
+| ADOPT-05 | Phase 22 | Pending |
+| ADOPT-06 | Phase 22 | Pending |
+| SAFE-01 | Phase 22 | Pending |
+| SAFE-02 | Phase 22 | Pending |
+| SAFE-03 | Phase 21 | Pending |
+| SAFE-04 | Phase 22 | Pending |
+| SAFE-05 | Phase 22 | Pending |
+| SAFE-06 | Phase 22 | Pending |
+| SAFE-07 | Phase 22 | Pending |
+| INV-01 | Phase 21 | Pending |
+| INV-02 | Phase 21 | Pending |
+| INV-03 | Phase 21 | Pending |
+| INV-04 | Phase 21 | Pending |
+| RESTR-01 | Phase 23 | Pending |
+| RESTR-02 | Phase 23 | Pending |
+| RESTR-03 | Phase 23 | Pending |
+| RESTR-04 | Phase 23 | Pending |
+| RESTR-05 | Phase 23 | Pending |
+| RESTR-06 | Phase 23 | Pending |
 
 **Coverage:**
 - v1 requirements: 23 total
-- Mapped to phases: 0 (roadmap pending)
-- Unmapped: 23 ⚠️ (filled by roadmapper)
+- Mapped to phases: 23 (roadmap complete)
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-05-28*
-*Last updated: 2026-05-28 after initial definition (milestone v0.6.0)*
+*Last updated: 2026-05-28 — traceability filled by roadmapper (v0.6.0)*
