@@ -367,13 +367,179 @@ resume_pipeline() {
   run_pipeline
 }
 
-apply_step() {
-  echo "adopt.sh: --apply-step is not yet implemented (Wave 2 / Plan 03)" >&2
-  exit 2
+# ── op-executor: the Phase 23 skill seam (D-05/06/07/08) ──────────────────────
+# manifest_write_atomic <jq-filter> [jq args...]: apply <jq-filter> to the manifest
+# and atomically replace it via a same-dir temp file (Pitfall 2 — never truncate).
+manifest_write_atomic() {
+  local filter="$1"; shift
+  local tmp="$MANIFEST_PATH.tmp.$$"
+  if jq "$@" "$filter" "$MANIFEST_PATH" > "$tmp" 2>/dev/null; then
+    mv "$tmp" "$MANIFEST_PATH"
+  else
+    rm -f "$tmp"
+    echo "✗ adopt.sh: failed to update manifest at $MANIFEST_PATH" >&2
+    exit 2
+  fi
 }
+
+# update_manifest (D-06, inbound half): read a proposed op as JSON from --step-json
+# <json> or stdin, jq-validate it has id/op/status (malformed → exit 2, NEVER
+# executed — T-22-11), and append it to restructure_steps[] via injection-safe
+# --argjson (no shell string interpolation into JSON). This is how the Phase 23
+# skill writes proposals; --apply-step is the outbound half that consumes them.
 update_manifest() {
-  echo "adopt.sh: --update-manifest is not yet implemented (Wave 2 / Plan 03)" >&2
-  exit 2
+  if [ ! -f "$MANIFEST_PATH" ]; then
+    echo "✗ adopt.sh: --update-manifest: no adopt-manifest.json at $MANIFEST_PATH (run inventory first)" >&2
+    exit 2
+  fi
+  # Source the step JSON: explicit arg ($CONJURE_ADOPT_STEP_JSON) wins, else stdin.
+  local step_json="${CONJURE_ADOPT_STEP_JSON:-}"
+  if [ -z "$step_json" ]; then
+    step_json="$(cat)"
+  fi
+  if [ -z "$step_json" ]; then
+    echo "✗ adopt.sh: --update-manifest: no step JSON provided (pass via stdin or CONJURE_ADOPT_STEP_JSON)" >&2
+    exit 2
+  fi
+  # Parse-check + required-fields {id, op, status} (RESEARCH Open Q3 validation depth).
+  if ! printf '%s' "$step_json" | jq -e 'type == "object" and has("id") and has("op") and has("status")' >/dev/null 2>&1; then
+    echo "✗ adopt.sh: --update-manifest: malformed step — requires object with id, op, status (rejected, not executed)" >&2
+    exit 2
+  fi
+  manifest_write_atomic '.restructure_steps += [$step]' --argjson step "$step_json"
+  echo "✓ update-manifest: appended proposed op $(printf '%s' "$step_json" | jq -r '.id') to restructure_steps[]"
+}
+
+# resolve_under <base_abs> <candidate_rel_or_abs> → echo the resolved absolute path
+# IFF it lies inside <base_abs>; else return 1. Rejects '..' traversal and absolute
+# escapes WITHOUT requiring the path to exist (T-22-09 path-traversal guard).
+resolve_under() {
+  local base="$1" cand="$2" abs
+  case "$cand" in
+    /*) abs="$cand" ;;          # absolute candidate — validate containment below
+    *)  abs="$base/$cand" ;;    # relative — anchor under base
+  esac
+  # Reject any literal traversal segment before normalization (defense in depth).
+  case "/$abs/" in
+    */../*) return 1 ;;
+  esac
+  # Containment check by string prefix (base is already canonical-absolute).
+  case "$abs/" in
+    "$base"/*) printf '%s\n' "$abs"; return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+# apply_step <id> (D-05, outbound half): read op #id from restructure_steps[],
+# validate op ∈ {write, archive, extract} + path safety, dispatch to the mutate_*
+# chokepoint (RESTR-02), log RESTRUCTURE, mark status: applied. Every validation
+# failure exits 2 and NEVER executes a partial op (T-22-09/10/11).
+apply_step() {
+  local id="$1"
+  if [ ! -f "$MANIFEST_PATH" ]; then
+    echo "✗ adopt.sh: --apply-step: no adopt-manifest.json at $MANIFEST_PATH" >&2
+    exit 2
+  fi
+  # Read the op object. Missing id → exit 2.
+  local op_json
+  op_json="$(jq -c --arg id "$id" '.restructure_steps[]? | select(.id == $id)' "$MANIFEST_PATH" 2>/dev/null)"
+  if [ -z "$op_json" ]; then
+    echo "✗ adopt.sh: --apply-step: no restructure step with id '$id'" >&2
+    exit 2
+  fi
+  local op dest src
+  op="$(printf '%s' "$op_json" | jq -r '.op // ""')"
+  dest="$(printf '%s' "$op_json" | jq -r '.dest // ""')"
+  src="$(printf '%s' "$op_json" | jq -r '.src // ""')"
+  # Op-type allowlist (T-22-11): reject anything outside {write, archive, extract}.
+  case "$op" in
+    write|archive|extract) ;;
+    *) echo "✗ adopt.sh: --apply-step: unsupported op '$op' (allowed: write, archive, extract)" >&2; exit 2 ;;
+  esac
+
+  local staging_abs target_abs archive_root
+  staging_abs="$(cd "$TARGET" && pwd)/.conjure-adopt-state/staging"
+  target_abs="$(cd "$TARGET" && pwd)"
+
+  # Set the log path so log_step RESTRUCTURE lands in the durable trail. log_init is
+  # NOT called here (apply-step runs post-pipeline; reuse or create the log header).
+  if [ ! -f "$TARGET/RESTRUCTURE-LOG.md" ]; then
+    log_init "$TARGET"
+  else
+    RESTRUCTURE_LOG_PATH="$TARGET/RESTRUCTURE-LOG.md"
+  fi
+
+  # ── write half (used by write + extract) ───────────────────────────────────
+  apply_write_op() {
+    local d_rel="$dest" s_ref="$src" abs_src dest_abs
+    if [ -z "$d_rel" ] || [ -z "$s_ref" ]; then
+      echo "✗ adopt.sh: --apply-step: write op requires dest + src" >&2; exit 2
+    fi
+    # src is target-relative (D-07: ".conjure-adopt-state/staging/<file>"). Resolve it
+    # under the target, then REQUIRE the resolved path to live under the staging dir
+    # — reject any escape/'..' (T-22-09/10). resolve_under rejects traversal segments.
+    if ! abs_src="$(resolve_under "$target_abs" "$s_ref")"; then
+      echo "✗ adopt.sh: --apply-step: write src '$s_ref' escapes the target or contains '..' (rejected)" >&2
+      exit 2
+    fi
+    case "$abs_src/" in
+      "$staging_abs"/*) ;;
+      *) echo "✗ adopt.sh: --apply-step: write src '$s_ref' must resolve under .conjure-adopt-state/staging/ (rejected)" >&2; exit 2 ;;
+    esac
+    if [ ! -f "$abs_src" ]; then
+      echo "✗ adopt.sh: --apply-step: write src not found at $abs_src" >&2; exit 2
+    fi
+    # dest MUST resolve under the target and contain no traversal (T-22-09).
+    if ! dest_abs="$(resolve_under "$target_abs" "$d_rel")"; then
+      echo "✗ adopt.sh: --apply-step: write dest '$d_rel' escapes the target (rejected)" >&2
+      exit 2
+    fi
+    # Record before/after for rollback durability (created[] if new, mutated[] if overwrite).
+    local existed=0 before_sha=""
+    if [ -f "$dest_abs" ]; then existed=1; before_sha="$(sha_of "$dest_abs")"; fi
+    mutate_write "$dest_abs" "$(cat "$abs_src")"
+    if [ "${DRY_RUN:-0}" != "1" ]; then
+      if [ "$existed" -eq 1 ]; then
+        state_add_mutated "$d_rel" "$before_sha" "$(sha_of "$dest_abs")"
+      else
+        state_add_created "$d_rel"
+      fi
+    fi
+  }
+
+  # ── archive half (used by archive + extract) ────────────────────────────────
+  apply_archive_op() {
+    local s_ref="$src" abs_src
+    if [ -z "$s_ref" ]; then
+      echo "✗ adopt.sh: --apply-step: archive op requires src" >&2; exit 2
+    fi
+    # Resolve src to an ABSOLUTE, traversal-free path under the target. mutate_archive
+    # also rejects relative/'..' (lib lines 96-102), but pre-validate for a clean error.
+    if ! abs_src="$(resolve_under "$target_abs" "$s_ref")"; then
+      echo "✗ adopt.sh: --apply-step: archive src '$s_ref' escapes the target or contains '..' (rejected)" >&2
+      exit 2
+    fi
+    if [ ! -e "$abs_src" ]; then
+      echo "✗ adopt.sh: --apply-step: archive src not found at $abs_src" >&2; exit 2
+    fi
+    archive_root="$target_abs/.conjure-archive-$(date -u '+%Y%m%dT%H%M%SZ')"
+    mkdir -p "$archive_root"
+    if ! mutate_archive "$abs_src" "$archive_root"; then
+      echo "✗ adopt.sh: --apply-step: archive failed for $abs_src" >&2; exit 2
+    fi
+    ARCHIVED_COUNT=$((${ARCHIVED_COUNT:-0} + 1))
+  }
+
+  case "$op" in
+    write)   apply_write_op ;;
+    archive) apply_archive_op ;;
+    extract) apply_write_op; apply_archive_op ;;   # D-08: write-new + archive-old composed
+  esac
+
+  log_step RESTRUCTURE "applied $op step '$id'${dest:+ → $dest}${src:+ (src $src)}"
+  # Mark the step applied in the manifest (atomic temp+mv, injection-safe --arg).
+  manifest_write_atomic '(.restructure_steps[] | select(.id == $id) | .status) = "applied"' --arg id "$id"
+  echo "✓ apply-step: $op op '$id' applied (status: applied)"
 }
 
 # ── the 5-step forward pipeline (ADOPT-01/04/05/06, SAFE-01/04/07) ────────────
