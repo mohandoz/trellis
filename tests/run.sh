@@ -16,25 +16,33 @@ pass() { echo "  ✓ $1"; PASS=$((PASS+1)); }
 fail() { echo "  ✗ $1"; FAIL=$((FAIL+1)); }
 
 # mk_path_without_gh — echo a PATH value in which `gh` is unresolvable.
-# A naive "strip gh's dir, re-add git's dir" breaks when gh and git share a
-# directory (e.g. /usr/bin on GitHub runners): re-adding git's dir restores gh.
-# Instead mirror gh's dir into a temp stub via symlinks (every sibling EXCEPT
-# gh), then swap the real dir for the stub. Echoes $PATH unchanged if gh absent.
+# Stripping just gh's first dir fails on usrmerged runners (/bin → /usr/bin), where
+# gh is reachable as both /usr/bin/gh and /bin/gh, and when gh lives in several PATH
+# dirs. So drop EVERY dir that holds an executable gh, mirroring each one's other
+# entries (symlinks) into a single stub dir so tools like git/jq stay reachable.
+# Echoes $PATH unchanged if gh is not found anywhere.
 GH_HIDE_STUBS=""
 mk_path_without_gh() {
-  local gh_loc gh_dir stub f base filtered
-  gh_loc="$(command -v gh 2>/dev/null || true)"
-  if [ -z "$gh_loc" ]; then printf '%s' "$PATH"; return 0; fi
-  gh_dir="$(dirname "$gh_loc")"
+  command -v gh >/dev/null 2>&1 || { printf '%s' "$PATH"; return 0; }
+  local stub new_path dir f base
   stub="$(mktemp -d)"
   GH_HIDE_STUBS="${GH_HIDE_STUBS:+$GH_HIDE_STUBS }$stub"
-  for f in "$gh_dir"/*; do
-    base="$(basename "$f")"
-    [ "$base" = "gh" ] && continue
-    ln -s "$f" "$stub/$base" 2>/dev/null || true
+  new_path=""
+  local IFS=:
+  for dir in $PATH; do
+    [ -z "$dir" ] && continue
+    if [ -x "$dir/gh" ]; then
+      for f in "$dir"/*; do
+        base="${f##*/}"
+        [ "$base" = "gh" ] && continue
+        [ -e "$stub/$base" ] && continue
+        ln -s "$f" "$stub/$base" 2>/dev/null || true
+      done
+    else
+      new_path="${new_path:+$new_path:}$dir"
+    fi
   done
-  filtered="$(printf '%s' "$PATH" | tr ':' '\n' | grep -vxF "$gh_dir" | tr '\n' ':' | sed 's/:$//')"
-  printf '%s' "${stub}:${filtered}"
+  printf '%s' "${stub}:${new_path}"
 }
 
 echo "═══════════════════════════════════════════════════════════════════"
