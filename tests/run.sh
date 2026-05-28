@@ -2655,6 +2655,184 @@ else
   trap - EXIT
 fi
 
+echo
+echo "▸ Phase 22 — git-init dirty-tree harness (ADOPT-03 / criterion 3 wiring)"
+
+# Net-new harness (PATTERNS.md "No Analog Found"): sandbox_setup copies a fixture
+# but does not `git init`; criterion 3 needs an untracked-file dirty tree. This
+# section exercises the harness shape in isolation (the dirty-tree assertions
+# themselves live in the "adopt.sh dirty-tree" section above, which consumes it).
+if [ "$P22_ADOPT_OK" -ne 1 ]; then
+  fail "scripts/adopt.sh not found — Wave 1 must create scripts/adopt.sh first (ADOPT-03/criterion 3)"
+else
+  P22_GH_TARGET="$(mktemp -d)"
+  trap 'rm -rf "$P22_GH_TARGET"' EXIT
+  cp -r "$P22_FIXTURE/." "$P22_GH_TARGET/"
+  git -C "$P22_GH_TARGET" init -q >/dev/null 2>&1
+  git -C "$P22_GH_TARGET" config user.email test@conjure.local >/dev/null 2>&1
+  git -C "$P22_GH_TARGET" config user.name "Conjure Test" >/dev/null 2>&1
+  git -C "$P22_GH_TARGET" add -A >/dev/null 2>&1
+  git -C "$P22_GH_TARGET" commit -q -m "fixture baseline" >/dev/null 2>&1
+  touch "$P22_GH_TARGET/UNTRACKED.txt"
+  P22_GH_PORCELAIN="$(git -C "$P22_GH_TARGET" status --porcelain 2>/dev/null)"
+  if [ -d "$P22_GH_TARGET/.git" ]; then
+    pass "dirty-tree harness: git -C \"\$sb\" init created a repo (criterion 3)"
+  else
+    fail "dirty-tree harness: git init did not create a .git dir (criterion 3)"
+  fi
+  if printf '%s\n' "$P22_GH_PORCELAIN" | grep -q 'UNTRACKED.txt'; then
+    pass "dirty-tree harness: untracked file makes the tree dirty (criterion 3)"
+  else
+    fail "dirty-tree harness: untracked file not reported by git status --porcelain (criterion 3)"
+  fi
+  rm -rf "$P22_GH_TARGET"
+  trap - EXIT
+fi
+
+echo
+echo "▸ Phase 22 — adopt.sh SIGKILL recovery (SAFE-05 / criterion 5)"
+
+if [ "$P22_ADOPT_OK" -ne 1 ]; then
+  fail "scripts/adopt.sh not found — Wave 1 must create scripts/adopt.sh first (SAFE-05/criterion 5)"
+else
+  P22_SK_TARGET="$(mktemp -d)"
+  trap 'rm -rf "$P22_SK_TARGET"' EXIT
+  cp -r "$P22_FIXTURE/." "$P22_SK_TARGET/"
+  # Launch adopt in the background; kill -9 once the snapshot step has landed.
+  DRY_RUN=0 CONJURE_HOME="$CONJURE_HOME" bash "$P22_ADOPT_SH" "$P22_SK_TARGET" >/dev/null 2>&1 &
+  P22_SK_PID=$!
+  # Bounded poll for the snapshot dir (no blind long sleep) — max ~5s.
+  P22_SK_SNAP_SEEN=0
+  for _i in $(seq 1 50); do
+    if [ -d "$P22_SK_TARGET/.conjure-adopt-backups" ]; then P22_SK_SNAP_SEEN=1; break; fi
+    kill -0 "$P22_SK_PID" 2>/dev/null || break   # process already exited
+    sleep 0.1
+  done
+  kill -9 "$P22_SK_PID" 2>/dev/null || true
+  wait "$P22_SK_PID" 2>/dev/null || true
+  if [ "$P22_SK_SNAP_SEEN" -eq 1 ]; then
+    pass "SIGKILL recovery: snapshot landed before kill -9 (bounded poll) (SAFE-05/criterion 5)"
+  else
+    fail "SIGKILL recovery: snapshot dir never appeared within bounded poll (SAFE-05/criterion 5)"
+  fi
+  # Re-run NON-interactively (no TTY, CONJURE_FORCE_INTERACTIVE unset): detect the
+  # partial state → exit 2 + print last-completed + the three recovery flag names.
+  P22_SK_OUT="$(
+    DRY_RUN=0 CONJURE_HOME="$CONJURE_HOME" \
+      bash "$P22_ADOPT_SH" "$P22_SK_TARGET" < /dev/null 2>&1
+  )"
+  P22_SK_RC=$?
+  if [ "$P22_SK_RC" -eq 2 ]; then
+    pass "SIGKILL recovery: non-TTY re-run exits 2 (never auto-mutate, D-13) (SAFE-05/criterion 5)"
+  else
+    fail "SIGKILL recovery: non-TTY re-run expected exit 2, got $P22_SK_RC (SAFE-05/criterion 5)"
+  fi
+  if printf '%s\n' "$P22_SK_OUT" | grep -qi 'last completed:'; then
+    pass "SIGKILL recovery: re-run prints 'last completed:' partial-state line (SAFE-05/criterion 5)"
+  else
+    fail "SIGKILL recovery: re-run missing 'last completed:' line — got: $P22_SK_OUT (SAFE-05/criterion 5)"
+  fi
+  P22_SK_FLAGS_OK=1
+  for _flag in -- --rollback --resume --start-fresh; do
+    [ "$_flag" = "--" ] && continue
+    printf '%s\n' "$P22_SK_OUT" | grep -q -- "$_flag" || P22_SK_FLAGS_OK=0
+  done
+  if [ "$P22_SK_FLAGS_OK" -eq 1 ]; then
+    pass "SIGKILL recovery: re-run lists --rollback/--resume/--start-fresh (D-13) (SAFE-05/criterion 5)"
+  else
+    fail "SIGKILL recovery: re-run missing one or more recovery flags — got: $P22_SK_OUT (SAFE-05/criterion 5)"
+  fi
+  rm -rf "$P22_SK_TARGET"
+  trap - EXIT
+fi
+
+echo
+echo "▸ Phase 22 — adopt.sh --apply-step / --update-manifest (D-05 / D-06 / D-08)"
+
+if [ "$P22_ADOPT_OK" -ne 1 ]; then
+  fail "scripts/adopt.sh not found — Wave 1 must create scripts/adopt.sh first (D-05/D-06/D-08)"
+else
+  P22_AS_TARGET="$(mktemp -d)"
+  trap 'rm -rf "$P22_AS_TARGET"' EXIT
+  cp -r "$P22_FIXTURE/." "$P22_AS_TARGET/"
+  # Seed the synthetic restructure_steps[] manifest + the staging file step-1 writes.
+  cp "$CONJURE_HOME/tests/fixtures/_adopt-restructure-steps/adopt-manifest.json" \
+     "$P22_AS_TARGET/adopt-manifest.json"
+  mkdir -p "$P22_AS_TARGET/.conjure-adopt-state/staging"
+  printf '# CLAUDE (condensed)\n\nProposed restructure content.\n' \
+    > "$P22_AS_TARGET/.conjure-adopt-state/staging/CLAUDE.md"
+  # The archive op (step-2) targets docs/OLD.md — create it so archive has a src.
+  mkdir -p "$P22_AS_TARGET/docs"
+  printf '# Old doc\n\nStale.\n' > "$P22_AS_TARGET/docs/OLD.md"
+  P22_AS_CLAUDE_BEFORE="$(p22_sha "$P22_AS_TARGET/CLAUDE.md" 2>/dev/null || echo NA)"
+  # --apply-step step-1 (write op) → dest changes via mutate_write, status applied.
+  DRY_RUN=0 CONJURE_ADOPT_APPLY_STEP=step-1 CONJURE_HOME="$CONJURE_HOME" \
+    bash "$P22_ADOPT_SH" --apply-step step-1 "$P22_AS_TARGET" >/dev/null 2>&1
+  P22_AS_CLAUDE_AFTER="$(p22_sha "$P22_AS_TARGET/CLAUDE.md" 2>/dev/null || echo NA)"
+  if [ "$P22_AS_CLAUDE_BEFORE" != "$P22_AS_CLAUDE_AFTER" ]; then
+    pass "apply-step: write op changed dest file via mutate_* (D-05/D-08)"
+  else
+    fail "apply-step: write op did not change CLAUDE.md (D-05/D-08)"
+  fi
+  if jq -e '.restructure_steps[] | select(.id=="step-1") | .status == "applied"' \
+       "$P22_AS_TARGET/adopt-manifest.json" >/dev/null 2>&1; then
+    pass "apply-step: step-1 marked status: applied in manifest (D-05/D-08)"
+  else
+    fail "apply-step: step-1 status not set to applied (D-05/D-08)"
+  fi
+  if [ -f "$P22_AS_TARGET/RESTRUCTURE-LOG.md" ] && grep -q 'RESTRUCTURE' "$P22_AS_TARGET/RESTRUCTURE-LOG.md" 2>/dev/null; then
+    pass "apply-step: RESTRUCTURE entry logged (D-05/SAFE-07)"
+  else
+    fail "apply-step: no RESTRUCTURE entry in RESTRUCTURE-LOG.md (D-05/SAFE-07)"
+  fi
+  # --update-manifest: append a valid step, then reject a malformed one ({}) with exit 2.
+  P22_UM_VALID='{"id":"step-3","op":"archive","src":"docs/OLD.md","status":"proposed"}'
+  printf '%s\n' "$P22_UM_VALID" | \
+    DRY_RUN=0 CONJURE_ADOPT_UPDATE_MANIFEST=1 CONJURE_HOME="$CONJURE_HOME" \
+    bash "$P22_ADOPT_SH" --update-manifest "$P22_AS_TARGET" >/dev/null 2>&1
+  if jq -e '.restructure_steps[] | select(.id=="step-3")' \
+       "$P22_AS_TARGET/adopt-manifest.json" >/dev/null 2>&1; then
+    pass "update-manifest: valid step appended to restructure_steps[] (D-06/D-08)"
+  else
+    fail "update-manifest: valid step not appended (D-06/D-08)"
+  fi
+  printf '%s\n' '{}' | \
+    DRY_RUN=0 CONJURE_ADOPT_UPDATE_MANIFEST=1 CONJURE_HOME="$CONJURE_HOME" \
+    bash "$P22_ADOPT_SH" --update-manifest "$P22_AS_TARGET" >/dev/null 2>&1
+  P22_UM_RC=$?
+  if [ "$P22_UM_RC" -eq 2 ]; then
+    pass "update-manifest: malformed step '{}' rejected with exit 2 (D-06/D-08)"
+  else
+    fail "update-manifest: malformed step '{}' expected exit 2, got $P22_UM_RC (D-06/D-08)"
+  fi
+  rm -rf "$P22_AS_TARGET"
+  trap - EXIT
+fi
+
+echo
+echo "▸ Phase 22 — adopt.sh snapshot self-copy regression (Pitfall 3 / SAFE-01)"
+
+if [ "$P22_ADOPT_OK" -ne 1 ]; then
+  fail "scripts/adopt.sh not found — Wave 1 must create scripts/adopt.sh first (Pitfall 3/SAFE-01)"
+else
+  P22_SC_TARGET="$(mktemp -d)"
+  trap 'rm -rf "$P22_SC_TARGET"' EXIT
+  cp -r "$P22_FIXTURE/." "$P22_SC_TARGET/"
+  # Two consecutive live adopts (clear state between runs so the second re-snapshots).
+  DRY_RUN=0 CONJURE_HOME="$CONJURE_HOME" bash "$P22_ADOPT_SH" "$P22_SC_TARGET" >/dev/null 2>&1
+  rm -rf "$P22_SC_TARGET/.conjure-adopt-state"
+  DRY_RUN=0 CONJURE_HOME="$CONJURE_HOME" bash "$P22_ADOPT_SH" "$P22_SC_TARGET" >/dev/null 2>&1
+  # Pitfall 3: a snapshot must not contain a nested .conjure-adopt-backups dir.
+  P22_SC_NEST="$(find "$P22_SC_TARGET/.conjure-adopt-backups" -path '*/.conjure-adopt-backups/*' 2>/dev/null | head -1)"
+  if [ -z "$P22_SC_NEST" ]; then
+    pass "self-copy: two adopts produce no nested .conjure-adopt-backups (Pitfall 3/SAFE-01)"
+  else
+    fail "self-copy: nested backups found ($P22_SC_NEST) — snapshot self-copy (Pitfall 3/SAFE-01)"
+  fi
+  rm -rf "$P22_SC_TARGET"
+  trap - EXIT
+fi
+
 # ──────────────────────────────────────────────────────────────────────────────
 # End Phase 22 test block
 # ──────────────────────────────────────────────────────────────────────────────
