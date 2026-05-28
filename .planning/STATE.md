@@ -2,16 +2,15 @@
 gsd_state_version: 1.0
 milestone: v0.6.0
 milestone_name: Safe Brownfield Adoption
-status: ready_to_plan
-last_updated: 2026-05-28T19:24:59.601Z
-last_activity: 2026-05-28 -- Phase 21 execution started
+status: planning
+last_updated: "2026-05-28T19:56:22.869Z"
+last_activity: 2026-05-28
 progress:
   total_phases: 4
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 4
   completed_plans: 4
-  percent: 0
-stopped_at: Phase 21 complete (4/4) — ready to discuss Phase 22
+  percent: 25
 ---
 
 # Project State
@@ -88,6 +87,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-28T15:48:22.139Z
-Stopped at: Phase 21 context gathered
-Resume file: .planning/phases/21-foundation-libs-inventory/21-CONTEXT.md
+Last session: 2026-05-28T19:56:22.865Z
+Stopped at: Phase 22 context gathered
+Resume file: .planning/phases/22-conjure-adopt-cli-core-rollback/22-CONTEXT.md
