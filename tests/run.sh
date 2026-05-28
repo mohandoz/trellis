@@ -1792,6 +1792,7 @@ else
   trap 'rm -rf "$P21_SNAP_DRY_BACKUP"' EXIT
   P21_SNAP_DRY_OUT="$(
     DRY_RUN=1 _P21_SNAP_TARGET="$BF_FIXTURE" _P21_SNAP_BACKUP="$P21_SNAP_DRY_BACKUP" \
+    CONJURE_HOME="$CONJURE_HOME" \
     bash -c '
       source "$CONJURE_HOME/lib/mutate.sh"
       source "$CONJURE_HOME/lib/log.sh"
