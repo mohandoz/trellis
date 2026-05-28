@@ -53,7 +53,7 @@ Full phase details for shipped milestones live in their archives under `.plannin
 Plans:
 **Wave 1**
 
-- [ ] 21-01-PLAN.md — Wave 0: brownfield-simple fixture + adopt-manifest.schema.json + Phase 21 test block scaffold
+- [x] 21-01-PLAN.md — Wave 0: brownfield-simple fixture + adopt-manifest.schema.json + Phase 21 test block scaffold
 - [ ] 21-02-PLAN.md — Wave 1: lib/caps.sh + lib/log.sh + mutate_archive in lib/mutate.sh
 
 **Wave 2** *(blocked on Wave 1 completion)*
@@ -119,7 +119,7 @@ Plans:
 | 18. Conflict Resolution | v0.5.0 | 2/2 | Complete | 2026-05-26 |
 | 19. Auto-PR | v0.5.0 | 2/2 | Complete | 2026-05-26 |
 | 20. Windows + CI Gate | v0.5.0 | 2/2 | Complete | 2026-05-28 |
-| 21. Foundation Libs + Inventory | v0.6.0 | 0/4 | Not started | - |
+| 21. Foundation Libs + Inventory | v0.6.0 | 1/4 | In Progress|  |
 | 22. `conjure adopt` CLI Core + Rollback | v0.6.0 | 0/TBD | Not started | - |
 | 23. Restructure Skill + Safety Gates | v0.6.0 | 0/TBD | Not started | - |
 | 24. Integration Tests + Argus Fixture | v0.6.0 | 0/TBD | Not started | - |
