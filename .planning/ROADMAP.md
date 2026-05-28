@@ -30,7 +30,7 @@ Full phase details for shipped milestones live in their archives under `.plannin
 ### v0.6.0 Safe Brownfield Adoption (Phases 21-24)
 
 - [x] **Phase 21: Foundation Libs + Inventory** - `lib/log.sh`, `lib/snapshot.sh`, `lib/inventory.sh`, `lib/caps.sh`, and finalized `adopt-manifest.json` schema with 6-bucket classification (completed 2026-05-28)
-- [ ] **Phase 22: `conjure adopt` CLI Core + Rollback** - `scripts/adopt.sh` + `cmd_adopt`, full 5-step pipeline, `--dry-run`, `--force`, `--rollback`, `--apply-step`, step-completion manifest, signal traps, snapshot-meta with git state
+- [x] **Phase 22: `conjure adopt` CLI Core + Rollback** - `scripts/adopt.sh` + `cmd_adopt`, full 5-step pipeline, `--dry-run`, `--force`, `--rollback`, `--apply-step`, step-completion manifest, signal traps, snapshot-meta with git state (completed 2026-05-28)
 - [ ] **Phase 23: Restructure Skill + Safety Gates** - `templates/skills/restructure/SKILL.md`, constraint-extraction pre-pass, pre-write audit gate, hierarchical approvals, archive-last sequencing + decision-vocabulary scan
 - [ ] **Phase 24: Integration Tests + Argus Fixture** - `tests/fixtures/brownfield-argus/`, bats-core tests covering dry-run output, rollback zero-diff, idempotent re-run, SIGKILL recovery, 500-file perf gate, symlink skip, @import pre-write block
 
@@ -89,7 +89,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 — shares scripts/adopt.sh)*
 
-- [ ] 22-03-PLAN.md — Wave 2: --rollback (D-01 restore→delete-created→sha256-verify) + partial-run recovery prompt (D-12/13/14) + --apply-step/--update-manifest op-executor (D-05/06/07/08)
+- [x] 22-03-PLAN.md — Wave 2: --rollback (D-01 restore→delete-created→sha256-verify) + partial-run recovery prompt (D-12/13/14) + --apply-step/--update-manifest op-executor (D-05/06/07/08)
 
 ### Phase 23: Restructure Skill + Safety Gates
 
@@ -132,6 +132,6 @@ Plans:
 | 19. Auto-PR | v0.5.0 | 2/2 | Complete | 2026-05-26 |
 | 20. Windows + CI Gate | v0.5.0 | 2/2 | Complete | 2026-05-28 |
 | 21. Foundation Libs + Inventory | v0.6.0 | 4/4 | Complete    | 2026-05-28 |
-| 22. `conjure adopt` CLI Core + Rollback | v0.6.0 | 2/3 | In Progress|  |
+| 22. `conjure adopt` CLI Core + Rollback | v0.6.0 | 3/3 | Complete   | 2026-05-28 |
 | 23. Restructure Skill + Safety Gates | v0.6.0 | 0/TBD | Not started | - |
 | 24. Integration Tests + Argus Fixture | v0.6.0 | 0/TBD | Not started | - |

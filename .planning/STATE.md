@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v0.6.0
 milestone_name: Safe Brownfield Adoption
-status: executing
-last_updated: "2026-05-28T21:06:55.314Z"
+status: verifying
+last_updated: "2026-05-28T21:26:39.530Z"
 last_activity: 2026-05-28
 progress:
   total_phases: 4
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 7
-  completed_plans: 6
-  percent: 25
+  completed_plans: 7
+  percent: 50
 ---
 
 # Project State
@@ -26,10 +26,10 @@ See: .planning/PROJECT.md (updated 2026-05-28)
 
 Phase: 22 (conjure-adopt-cli-core-rollback) — EXECUTING
 Plan: 3 of 3
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-05-28
 
-Progress: [█████████░] 86%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -55,6 +55,7 @@ Progress: [█████████░] 86%
 
 | Phase 22 P22-01 | 18 | 3 tasks | 2 files |
 | Phase 22 P22-02 | 35 | 2 tasks | 4 files |
+| Phase 22 P22-03 | 40 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -72,6 +73,9 @@ Full decision log in PROJECT.md Key Decisions table. Key v0.6.0 design decisions
 - [Phase ?]: Phase 22 Wave 1: cmd_adopt thin dispatcher + scripts/adopt.sh 5-step forward pipeline
 - [Phase ?]: Pitfall 3 self-copy fixed by snapshotting into a temp root outside the target then relocating into .conjure-adopt-backups (no lib change)
 - [Phase ?]: .conjure-adopt-state directory-form (state.json + staging/); state written atomically (jq>tmp+mv) BEFORE each mutating step for SIGKILL durability (SAFE-04)
+- [Phase ?]: Phase 22 Wave 2: rollback_path D-01 3-step — capture created[]/mutated[] before snapshot_rollback (snapshot has stale state.json), restore, strip leaked .snapshot-meta.json, mutate_rm created[], prune snapshot-absent empty dirs, sha256-verify mutated[]; yields Phase 24 zero-diff
+- [Phase ?]: apply-step write src is target-relative per D-07; op-allowlist {write,archive,extract} + required-fields {id,op,status} + resolve_under containment guard, exit 2 with no partial mutation (T-22-09/10/11)
+- [Phase ?]: Phase 22 --resume reuses the existing snapshot via CONJURE_ADOPT_REUSE_SNAPSHOT so no second backup is created CR-2 and preserves durable log plus state rather than re-initializing per D-12
 
 ### Pending Todos
 
@@ -96,6 +100,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-28T21:06:26.321Z
-Stopped at: Phase 22 context gathered
+Last session: 2026-05-28T21:26:15.577Z
+Stopped at: Completed 22-03-PLAN.md (Phase 22 complete — all plans done)
 Resume file: None
