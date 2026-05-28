@@ -278,6 +278,19 @@ rollback_path() {
   jq -r '.created[]?' "$STATE_PATH" > "$created_list" 2>/dev/null || true
   jq -r '.mutated[]? | "\(.path)\t\(.before)"' "$STATE_PATH" > "$mutated_list" 2>/dev/null || true
 
+  # WR-03 (SAFE-07 / D-04): the snapshot was taken at the "snapshot" step, so its
+  # copy of RESTRUCTURE-LOG.md holds only the header + SNAPSHOT entry. The whole-tree
+  # restore below would overwrite the LIVE log (carrying the full forward-run
+  # INVENTORY/SCAFFOLD/AUDIT trail) with that stale copy, and the ROLLBACK entry would
+  # then append to the truncated file — losing the durable audit history D-04 says to
+  # preserve. Capture the live log aside (like created_list/mutated_list) and restore
+  # it after the snapshot restore, so the trail stays [forward entries] ... [ROLLBACK].
+  local log_preserved=""
+  if [ -f "$TARGET/RESTRUCTURE-LOG.md" ]; then
+    log_preserved="$(mktemp)"
+    cp "$TARGET/RESTRUCTURE-LOG.md" "$log_preserved"
+  fi
+
   # Set the log path so snapshot_rollback auto-logs ROLLBACK and our log_step lands here.
   RESTRUCTURE_LOG_PATH="$TARGET/RESTRUCTURE-LOG.md"
 
@@ -285,7 +298,14 @@ rollback_path() {
   if ! snapshot_rollback "$snap" "$TARGET"; then
     echo "✗ adopt.sh: --rollback: snapshot restore failed from $snap" >&2
     rm -f "$created_list" "$mutated_list"
+    [ -n "$log_preserved" ] && rm -f "$log_preserved"
     exit 2
+  fi
+  # WR-03: restore the live forward-run log over the stale snapshot copy so the
+  # ROLLBACK entry (appended below) continues the full trail, not the truncated one.
+  if [ -n "$log_preserved" ]; then
+    cp "$log_preserved" "$TARGET/RESTRUCTURE-LOG.md"
+    rm -f "$log_preserved"
   fi
   # The snapshot dir carries a .snapshot-meta.json at its root; cp -a snapshot/.
   # leaks it into the target root. Remove it so the post-rollback tree is clean (D-03).
