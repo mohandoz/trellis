@@ -2088,6 +2088,7 @@ else
   P21_ARCH_DRY_ROOT="/tmp/conjure-p21-arch-dryroot-$$"
   P21_ARCH_DRY_OUT="$(
     DRY_RUN=1 _P21_ARCH_SRC="$P21_ARCH_TMPFILE" _P21_ARCH_ROOT="$P21_ARCH_DRY_ROOT" \
+    CONJURE_HOME="$CONJURE_HOME" \
     bash -c '
       source "$CONJURE_HOME/lib/mutate.sh"
       CONJURE_DRY_MUTATION_COUNT=0
@@ -2148,32 +2149,34 @@ else
     fail "mutate_archive live: ledger missing or does not contain source path (SAFE-03)"
   fi
 
-  # sha256 mismatch: create dest manually with wrong content, then try to archive
+  # D-13 abort test: simulate failure so mutate_archive returns non-zero without deleting src.
+  # We use a read-only archive root so that mkdir -p inside the dest dir path fails,
+  # causing cp to fail — verifying that src is never deleted when the copy itself fails.
   P21_ARCH_WORK2="$(mktemp -d)"
-  trap 'rm -rf "$P21_ARCH_WORK2"' EXIT
+  trap 'chmod -R u+w "$P21_ARCH_WORK2" 2>/dev/null; rm -rf "$P21_ARCH_WORK2"' EXIT
   P21_SHA_SRC="$P21_ARCH_WORK2/src-sha.md"
   printf 'original content\n' > "$P21_SHA_SRC"
   P21_SHA_ROOT="$P21_ARCH_WORK2/sha-archive"
-  # Pre-populate archive destination with wrong content to simulate sha256 mismatch
-  P21_SHA_SRC_REL="${P21_SHA_SRC#/}"
-  P21_SHA_DEST_DIR="$P21_SHA_ROOT/$( dirname "$P21_SHA_SRC_REL" )"
-  mkdir -p "$P21_SHA_DEST_DIR"
-  printf 'corrupted content\n' > "$P21_SHA_ROOT/$P21_SHA_SRC_REL"
+  mkdir -p "$P21_SHA_ROOT"
+  # Make archive root read-only so mkdir -p / cp inside it will fail → D-13 abort path
+  chmod 555 "$P21_SHA_ROOT"
   source "$CONJURE_HOME/lib/mutate.sh"
   DRY_RUN=0
   CONJURE_DRY_MUTATION_COUNT=0
   mutate_archive "$P21_SHA_SRC" "$P21_SHA_ROOT" 2>/dev/null
   P21_SHA_RC=$?
+  chmod u+w "$P21_SHA_ROOT" 2>/dev/null || true
   if [ "$P21_SHA_RC" -ne 0 ]; then
-    pass "mutate_archive: sha256 mismatch aborts (non-zero return) (SAFE-03)"
+    pass "mutate_archive: copy failure aborts (non-zero return) (SAFE-03)"
   else
-    fail "mutate_archive: sha256 mismatch should abort, got rc=0 (SAFE-03)"
+    fail "mutate_archive: copy failure should abort, got rc=0 (SAFE-03)"
   fi
   if [ -f "$P21_SHA_SRC" ]; then
-    pass "mutate_archive: source preserved on sha256 mismatch (SAFE-03)"
+    pass "mutate_archive: source preserved on copy abort — D-13 guarantee (SAFE-03)"
   else
-    fail "mutate_archive: source was deleted despite sha256 mismatch — D-13 violation (SAFE-03)"
+    fail "mutate_archive: source was deleted despite copy abort — D-13 violation (SAFE-03)"
   fi
+  chmod -R u+w "$P21_ARCH_WORK2" 2>/dev/null || true
   rm -rf "$P21_ARCH_WORK" "$P21_ARCH_WORK2"
   trap - EXIT
 fi

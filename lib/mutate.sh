@@ -1,15 +1,16 @@
 #!/usr/bin/env bash
 # lib/mutate.sh — sourced mutation chokepoint for Conjure.
-# Source this file; call mutate_mkdir, mutate_cp, mutate_write, mutate_rm, mutate_summary.
+# Source this file; call mutate_mkdir, mutate_cp, mutate_write, mutate_rm, mutate_archive, mutate_summary.
 # Requires: DRY_RUN env var (0=live, 1=dry); set -u safe via ${DRY_RUN:-0}.
 # POSIX bash 3.2+ compatible. No associative arrays, no mapfile, no local -n.
 #
 # Usage from any script:
 #   source "$CONJURE_HOME/lib/mutate.sh"
-#   mutate_mkdir  <dir>
-#   mutate_cp     <src> <dest>
-#   mutate_write  <dest> <content> [--append]
-#   mutate_rm     <path>
+#   mutate_mkdir   <dir>
+#   mutate_cp      <src> <dest>
+#   mutate_write   <dest> <content> [--append]
+#   mutate_rm      <path>
+#   mutate_archive <src_abs> <archive_root>
 #   mutate_summary   # call at end of each script
 
 # Initialize dry-run mutation counter if not already set.
@@ -74,6 +75,54 @@ mutate_rm() {
     return 0
   fi
   rm -f "$1"
+}
+
+# mutate_archive <src_abs> <archive_root>
+# Moves src to archive_root preserving path structure (D-12). Never deletes without verify (D-13).
+# In dry-run: prints [dry-run] would archive, increments counter, returns 0.
+# In live mode: cp -a → sha256 verify → rm → ledger entry → counter increment.
+# Aborts and returns 1 if sha256 mismatch; removes partial dest copy on mismatch.
+mutate_archive() {
+  local src="$1"
+  local archive_root="$2"
+  if [ "${DRY_RUN:-0}" = "1" ]; then
+    echo "[dry-run] would archive ${src} → ${archive_root}/..."
+    CONJURE_DRY_MUTATION_COUNT=$((CONJURE_DRY_MUTATION_COUNT + 1))
+    return 0
+  fi
+  # Derive mirror path (D-12): strip leading slash for path-preserving layout
+  local rel="${src#/}"
+  local dest="${archive_root}/${rel}"
+  mkdir -p "$(dirname "${dest}")"
+  if ! cp -a "${src}" "${dest}"; then
+    echo "[mutate_archive] ABORT: cp failed for ${src}" >&2
+    return 1
+  fi
+  # Cross-platform sha256 (Pitfall 4): sha256sum (Linux) or shasum (macOS)
+  local src_hash dest_hash
+  if command -v sha256sum >/dev/null 2>&1; then
+    src_hash="$(sha256sum "${src}" | cut -d' ' -f1)"
+    dest_hash="$(sha256sum "${dest}" | cut -d' ' -f1)"
+  elif command -v shasum >/dev/null 2>&1; then
+    src_hash="$(shasum -a 256 "${src}" | cut -d' ' -f1)"
+    dest_hash="$(shasum -a 256 "${dest}" | cut -d' ' -f1)"
+  else
+    echo "[mutate_archive] ABORT: no sha256 tool available (sha256sum/shasum) — cannot verify copy" >&2
+    rm -f "${dest}"
+    return 1
+  fi
+  # D-13: never unlink unverified content
+  if [ "${src_hash}" != "${dest_hash}" ]; then
+    echo "[mutate_archive] ABORT: sha256 mismatch for ${src} — original preserved" >&2
+    rm -f "${dest}"
+    return 1
+  fi
+  rm -f "${src}"
+  # Append ledger entry (D-13)
+  printf '%s\t%s\t%s\t%s\n' \
+    "${src}" "${dest}" "${src_hash}" "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" \
+    >> "${archive_root}/.archive-ledger"
+  CONJURE_DRY_MUTATION_COUNT=$((CONJURE_DRY_MUTATION_COUNT + 1))
 }
 
 # mutate_summary
