@@ -215,8 +215,13 @@ inventory_scan() {
     if [ -L "${filepath}" ]; then
       continue
     fi
-    # Skip binary files (LC_ALL=C grep for null bytes)
-    if LC_ALL=C grep -Pc '\x00' "${filepath}" 2>/dev/null | grep -q '^[1-9]'; then
+    # Skip binary files via NUL-byte detection. Portable across BSD/GNU:
+    # grep -P (PCRE) is unavailable on stock macOS grep, so use tr+cmp instead.
+    # tr -d '\000' strips NULs; if the result differs from the original the file
+    # contained NUL bytes and is treated as binary.
+    # SC2094: both sides of the pipe only READ filepath (tr stdin, cmp arg) — no write.
+    # shellcheck disable=SC2094
+    if ! LC_ALL=C tr -d '\000' < "${filepath}" | cmp -s - "${filepath}"; then
       continue
     fi
     printf '%s\n' "${filepath}" >> "${_items_file}"

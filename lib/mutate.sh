@@ -90,6 +90,16 @@ mutate_archive() {
     CONJURE_DRY_MUTATION_COUNT=$((CONJURE_DRY_MUTATION_COUNT + 1))
     return 0
   fi
+  # D-13 safety: src must be absolute and free of '..' traversal segments before
+  # it is mirrored into archive_root. Without this, a relative or '..'-bearing src
+  # produces a dest outside archive_root, defeating archive-preservation.
+  case "${src}" in
+    /*) ;;
+    *) echo "[mutate_archive] ABORT: src must be an absolute path: ${src}" >&2; return 1 ;;
+  esac
+  case "/${src}/" in
+    */../*) echo "[mutate_archive] ABORT: src contains traversal segment '..': ${src}" >&2; return 1 ;;
+  esac
   # Derive mirror path (D-12): strip leading slash for path-preserving layout
   local rel="${src#/}"
   local dest="${archive_root}/${rel}"

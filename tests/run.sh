@@ -1989,6 +1989,34 @@ else
   rm -rf "$P21_INV_WORK"
   trap - EXIT
 
+  # CR-01: binary-file skip must work on stock macOS (BSD grep has no -P flag).
+  # A .md containing NUL bytes must be excluded from the scan; a plain-text file kept.
+  P21_BIN_WORK="$(mktemp -d)"
+  trap 'rm -rf "$P21_BIN_WORK"' EXIT
+  mkdir -p "$P21_BIN_WORK/target"
+  printf '# Title\n\nText.\n' > "$P21_BIN_WORK/target/CLAUDE.md"
+  printf 'binary\000content\000here\n' > "$P21_BIN_WORK/target/binary-doc.md"
+  P21_BIN_OUT="$(
+    source "$CONJURE_HOME/lib/mutate.sh"
+    [ -f "$CONJURE_HOME/lib/caps.sh" ]      && source "$CONJURE_HOME/lib/caps.sh"
+    [ -f "$CONJURE_HOME/lib/log.sh" ]       && source "$CONJURE_HOME/lib/log.sh"
+    [ -f "$CONJURE_HOME/lib/inventory.sh" ] && source "$CONJURE_HOME/lib/inventory.sh"
+    DRY_RUN=0
+    inventory_scan "$P21_BIN_WORK/target" 2>/dev/null || true
+    P21_BIN=$(printf '%s\n' "$CONJURE_INVENTORY_ITEMS" | grep -c 'binary-doc.md' | tr -d ' ')
+    P21_CLA=$(printf '%s\n' "$CONJURE_INVENTORY_ITEMS" | grep -c 'CLAUDE.md' | tr -d ' ')
+    printf '%s %s\n' "$P21_BIN" "$P21_CLA"
+  )"
+  P21_BIN_HIT="${P21_BIN_OUT%% *}"
+  P21_CLA_HIT="${P21_BIN_OUT##* }"
+  if [ "${P21_CLA_HIT:-0}" -ge 1 ] && [ "${P21_BIN_HIT:-1}" = "0" ]; then
+    pass "inventory: binary .md (NUL bytes) skipped, text kept (CR-01/INV-03)"
+  else
+    fail "inventory: binary skip broken (bin=$P21_BIN_HIT claude=$P21_CLA_HIT) (CR-01/INV-03)"
+  fi
+  rm -rf "$P21_BIN_WORK"
+  trap - EXIT
+
   # INV-03: 500-file cap — use generate-large.sh
   P21_CAP_WORK="$(mktemp -d)"
   trap 'rm -rf "$P21_CAP_WORK"' EXIT
@@ -2178,8 +2206,37 @@ else
   else
     fail "mutate_archive: source was deleted despite copy abort — D-13 violation (SAFE-03)"
   fi
+
+  # CR-02 path-traversal guard: a src containing '..' or a relative src must abort
+  # before any copy/delete, so attacker-controlled paths cannot escape archive_root.
+  P21_ARCH_WORK3="$(mktemp -d)"
+  trap 'rm -rf "$P21_ARCH_WORK3"' EXIT
+  P21_TRAV_SRC="$P21_ARCH_WORK3/sub/../sub/evil.md"
+  mkdir -p "$P21_ARCH_WORK3/sub"
+  printf 'evil\n' > "$P21_ARCH_WORK3/sub/evil.md"
+  P21_TRAV_ROOT="$P21_ARCH_WORK3/arch"
+  source "$CONJURE_HOME/lib/mutate.sh"
+  DRY_RUN=0
+  mutate_archive "$P21_TRAV_SRC" "$P21_TRAV_ROOT" 2>/dev/null
+  if [ "$?" -ne 0 ]; then
+    pass "mutate_archive: '..' traversal src aborts (CR-02/SAFE-03)"
+  else
+    fail "mutate_archive: '..' traversal src should abort, got rc=0 (CR-02/SAFE-03)"
+  fi
+  if [ -f "$P21_ARCH_WORK3/sub/evil.md" ]; then
+    pass "mutate_archive: source preserved on traversal abort (CR-02/SAFE-03)"
+  else
+    fail "mutate_archive: source deleted despite traversal abort (CR-02/SAFE-03)"
+  fi
+  mutate_archive "relative/path.md" "$P21_TRAV_ROOT" 2>/dev/null
+  if [ "$?" -ne 0 ]; then
+    pass "mutate_archive: relative (non-absolute) src aborts (CR-02/SAFE-03)"
+  else
+    fail "mutate_archive: relative src should abort, got rc=0 (CR-02/SAFE-03)"
+  fi
+
   chmod -R u+w "$P21_ARCH_WORK2" 2>/dev/null || true
-  rm -rf "$P21_ARCH_WORK" "$P21_ARCH_WORK2"
+  rm -rf "$P21_ARCH_WORK" "$P21_ARCH_WORK2" "$P21_ARCH_WORK3"
   trap - EXIT
 fi
 
