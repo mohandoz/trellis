@@ -32,7 +32,7 @@ Full phase details for shipped milestones live in their archives under `.plannin
 - [x] **Phase 21: Foundation Libs + Inventory** - `lib/log.sh`, `lib/snapshot.sh`, `lib/inventory.sh`, `lib/caps.sh`, and finalized `adopt-manifest.json` schema with 6-bucket classification (completed 2026-05-28)
 - [x] **Phase 22: `conjure adopt` CLI Core + Rollback** - `scripts/adopt.sh` + `cmd_adopt`, full 5-step pipeline, `--dry-run`, `--force`, `--rollback`, `--apply-step`, step-completion manifest, signal traps, snapshot-meta with git state (completed 2026-05-28)
 - [x] **Phase 23: Restructure Skill + Safety Gates** - `templates/skills/restructure/SKILL.md`, constraint-extraction pre-pass, pre-write audit gate, hierarchical approvals, archive-last sequencing + decision-vocabulary scan (completed 2026-05-29)
-- [ ] **Phase 24: Integration Tests + Argus Fixture** - `tests/fixtures/brownfield-argus/`, bats-core tests covering dry-run output, rollback zero-diff, idempotent re-run, SIGKILL recovery, 500-file perf gate, symlink skip, @import pre-write block
+- [x] **Phase 24: Integration Tests + Argus Fixture** - `tests/fixtures/brownfield-argus/`, bats-core tests covering dry-run output, rollback zero-diff, idempotent re-run, SIGKILL recovery, 500-file perf gate, symlink skip, @import pre-write block (completed 2026-05-29)
 
 ## Phase Details
 
@@ -140,7 +140,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 — consumes the generator + the report() deviation)*
 
-- [ ] 24-02-PLAN.md — Wave 2: the `▸ Phase 24` test block in `tests/run.sh` (after :3280) — 5 criterion sections (dry-run perf/zero-write, rollback zero-diff, idempotent re-run, SIGKILL recovery, symlink-skip + @import-block) behind a `P24_ARGUS_OK` guard, full suite stays ≥429 green
+- [x] 24-02-PLAN.md — Wave 2: the `▸ Phase 24` test block in `tests/run.sh` (after :3280) — 5 criterion sections (dry-run perf/zero-write, rollback zero-diff, idempotent re-run, SIGKILL recovery, symlink-skip + @import-block) behind a `P24_ARGUS_OK` guard, full suite stays ≥429 green
 
 ## Progress
 
@@ -154,4 +154,4 @@ Plans:
 | 21. Foundation Libs + Inventory | v0.6.0 | 4/4 | Complete    | 2026-05-28 |
 | 22. `conjure adopt` CLI Core + Rollback | v0.6.0 | 3/3 | Complete    | 2026-05-28 |
 | 23. Restructure Skill + Safety Gates | v0.6.0 | 3/3 | Complete    | 2026-05-29 |
-| 24. Integration Tests + Argus Fixture | v0.6.0 | 1/2 | In Progress|  |
+| 24. Integration Tests + Argus Fixture | v0.6.0 | 2/2 | Complete   | 2026-05-29 |
