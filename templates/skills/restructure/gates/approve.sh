@@ -28,7 +28,9 @@ CONJURE_HOME="${CONJURE_HOME:-$(cd "$(dirname "$0")/../../../.." && pwd)}"
 
 # ── NON-TTY GUARD FIRST (D-12) — fires before any arg interpretation so that a
 #    non-interactive drive (< /dev/null) always exits 2 and NEVER auto-approves.
-#    CONJURE_FORCE_INTERACTIVE=1 is the test-only escape hatch (mirrors resolve.sh:34).
+#    WR-02: CONJURE_FORCE_INTERACTIVE=1 is a TEST-ONLY escape hatch (mirrors
+#    resolve.sh:34 / adopt.sh:808) — the production skill MUST NEVER set or inherit it,
+#    or a piped 'a' would auto-approve with no human at a terminal (SKILL.md forbids it).
 if ! { [ -t 0 ] || [ "${CONJURE_FORCE_INTERACTIVE:-0}" = "1" ]; }; then
   echo "restructure: stdin is not a TTY — interactive approval required" >&2
   exit 2

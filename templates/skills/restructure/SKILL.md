@@ -21,9 +21,13 @@ NEVER mutate a project file directly — every change crosses the
 - Staged CONTENT (your draft of the condensed file) is written to
   `.conjure-adopt-state/staging/<file>` via a **Bash redirect** — a transient
   adopt-state path, not a project file.
-- The proposed OP is registered over **stdin only**:
-  `printf '%s' "$op" | conjure adopt --update-manifest`. The env var is NOT
-  forwarded through the CLI (`cli/conjure` does not plumb `CONJURE_ADOPT_STEP_JSON`).
+- Register the proposed OP over **stdin**:
+  `printf '%s' "$op" | conjure adopt --update-manifest`. NOTE: `adopt.sh` accepts the
+  op from `CONJURE_ADOPT_STEP_JSON` *or* stdin, and the env var is **inherited by the
+  child process** and read at **higher priority than stdin** (adopt.sh ~423). So the
+  skill MUST use stdin AND MUST NOT have a stale `CONJURE_ADOPT_STEP_JSON` exported —
+  if it might be set, `unset CONJURE_ADOPT_STEP_JSON` first so it cannot shadow the
+  stdin payload.
 - Build op JSON injection-safe with `jq -n --arg` — never string-interpolate into JSON.
 
 ## Inputs
@@ -92,14 +96,18 @@ reference-doc unknown` (see `adopt-manifest.schema.json`).
 
 - ❌ NEVER call Write or Edit on a project file — every mutation routes through
   `conjure adopt --apply-step` (RESTR-02). The skill is `[Read, Bash]` only.
-- ❌ NEVER pass the op JSON via an env var — `conjure adopt --update-manifest` reads
-  the op from STDIN only (the env var is not forwarded through the CLI).
+- ❌ NEVER rely on `CONJURE_ADOPT_STEP_JSON` to pass the op — it is INHERITED by the
+  child and wins over stdin (adopt.sh ~423). Pass the op via stdin and `unset` the env
+  var if it may be set, so the intended stdin payload is never shadowed.
 - ❌ NEVER audit or verify AFTER apply — GATE A + GATE B run on the staging file
   BEFORE the approval prompt (D-13/14).
 - ❌ NEVER prompt once per file at scale — group by classification bucket (D-09).
 - ❌ NEVER archive before the write/extract ops are approved — archive is sequenced
   LAST (D-15) and routed through `gates/decision-scan.sh`.
 - ❌ NEVER auto-proceed on a non-TTY stdin — `gates/approve.sh` exits 2 (D-12).
+- ❌ NEVER set or inherit `CONJURE_FORCE_INTERACTIVE` — it is a TEST-ONLY hatch that
+  bypasses the non-TTY guard; in production it would let a piped `a` auto-approve with
+  no human at a terminal (defeats D-12). The skill must run with it unset.
 - ❌ NEVER `exit 1` in a helper — use `exit 2` to block (project convention).
 
 ## Cross-references
