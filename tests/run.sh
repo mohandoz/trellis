@@ -3224,6 +3224,57 @@ else
   fi
 fi
 
+# ── CR-01 regression: a NON-archive bucket approval must NOT apply op:archive ───
+# The shipped fixture manifest has step-2 = {op: archive, src: docs/OLD.md}, and
+# docs/OLD.md is classified reference-doc in files[]. Approving the reference-doc
+# bucket must NOT fire the archive step: archive ops are sequenced LAST (D-15) and
+# routed through gates/decision-scan.sh (D-11). A regression here is the CR-6
+# bulk-archive-of-an-active-decision failure mode. This section FAILS against a
+# pre-fix approve.sh (whose bucket collector matched step-2 via select(.src==$p)
+# with no .op filter) and PASSES once the op:archive exclusion is in place.
+if [ "$P23_RESTR_OK" -ne 1 ]; then
+  fail "restructure approval driver not found — Wave 2 must exclude op:archive from non-archive bucket approval (CR-01/D-15)"
+else
+  P23_CR="$P23_RESTR_DIR/gates/approve.sh"
+  if [ ! -f "$P23_CR" ]; then
+    fail "restructure approval driver (gates/approve.sh) not found — CR-01 archive-exclusion cannot be exercised (D-15)"
+  else
+    P23_CR_TARGET="$(mktemp -d)"
+    trap 'rm -rf "$P23_CR_TARGET"' EXIT
+    cp -r "$P22_FIXTURE/." "$P23_CR_TARGET/"
+    cp "$P23_MANIFEST" "$P23_CR_TARGET/adopt-manifest.json"
+    # Materialize the archive candidate so a (wrongly) fired archive op would be
+    # observable: docs/OLD.md must exist at its original path before approval.
+    mkdir -p "$P23_CR_TARGET/docs"
+    printf '# OLD\n\nA redundant reference doc slated for the archive-last pass.\n' \
+      > "$P23_CR_TARGET/docs/OLD.md"
+    # Stage step-1's write src so the (legitimate) write op could apply cleanly.
+    mkdir -p "$P23_CR_TARGET/.conjure-adopt-state/staging"
+    printf '# CLAUDE (condensed)\n\nProposed restructure content.\n' \
+      > "$P23_CR_TARGET/.conjure-adopt-state/staging/CLAUDE.md"
+    # Drive a bulk approve over both non-empty buckets (core + reference-doc).
+    printf 'a\na\n' | CONJURE_FORCE_INTERACTIVE=1 CONJURE_HOME="$CONJURE_HOME" \
+      bash "$P23_CR" "$P23_CR_TARGET" >/dev/null 2>&1 || true
+    # Assertion 1: step-2 (op:archive) must remain status:proposed — never applied
+    # as a side effect of the reference-doc bucket approval.
+    if jq -e '.restructure_steps[] | select(.id=="step-2") | .status == "proposed"' \
+         "$P23_CR_TARGET/adopt-manifest.json" >/dev/null 2>&1; then
+      pass "CR-01: op:archive step stays 'proposed' through non-archive bucket approval (D-15)"
+    else
+      fail "CR-01: op:archive step-2 was applied during the reference-doc bucket — D-15 violated / decision-scan bypassed"
+    fi
+    # Assertion 2: docs/OLD.md must NOT have been moved into a .conjure-archive-* dir.
+    if [ -f "$P23_CR_TARGET/docs/OLD.md" ] \
+       && [ -z "$(find "$P23_CR_TARGET" -type d -name '.conjure-archive-*' 2>/dev/null)" ]; then
+      pass "CR-01: archive candidate docs/OLD.md not archived during non-archive approval (D-15)"
+    else
+      fail "CR-01: docs/OLD.md was archived during the reference-doc bucket approval — archive must be sequenced LAST"
+    fi
+    rm -rf "$P23_CR_TARGET"
+    trap - EXIT
+  fi
+fi
+
 # ──────────────────────────────────────────────────────────────────────────────
 # End Phase 23 test block
 # ──────────────────────────────────────────────────────────────────────────────

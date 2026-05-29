@@ -133,8 +133,21 @@ for bucket in $BUCKETS; do
         exec 3< "$paths_tmp"
         while IFS= read -r p <&3; do
           [ -n "$p" ] || continue
+          # CR-01: EXCLUDE op:archive here. An archive step records the project file
+          # being archived as .src, and that same file also appears in files[] under a
+          # non-archive classification — so an unfiltered path match would apply the
+          # archive DURING a non-archive bucket approval, violating D-15 (archive
+          # sequenced LAST) and bypassing decision-scan.sh's individual-vs-bulk confirm
+          # (the CR-6 bulk-archive-of-an-active-decision failure mode). Archive ops are
+          # handled ONLY in the dedicated archive-last pass (SKILL.md step 6), which
+          # routes each candidate through gates/decision-scan.sh (D-11). Also restrict
+          # to status=="proposed" so an already-applied/skipped step is never re-applied.
           jq -r --arg p "$p" \
-            '.restructure_steps[]?|select((.dest==$p) or (.src==$p) or ((.src // "")|endswith("/"+$p)))|.id' \
+            '.restructure_steps[]?
+             | select(.op != "archive")
+             | select(.status == "proposed")
+             | select((.dest==$p) or (.src==$p) or ((.src // "")|endswith("/"+$p)))
+             | .id' \
             "$MANIFEST" 2>/dev/null >> "$steps_tmp"
         done
         exec 3<&-
