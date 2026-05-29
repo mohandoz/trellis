@@ -56,7 +56,7 @@ for hook in "$KIT"/templates/hooks-nodejs/*.mjs; do
 done
 
 # 5. Copy tooling skills (graphify-wrappers, MCP-wrappers)
-for skill in code-graph docs-lookup web-research ast-search repo-pack sql-explorer _anatomy; do
+for skill in code-graph docs-lookup web-research ast-search repo-pack sql-explorer restructure _anatomy; do
   if [ ! -d ".claude/skills/$skill" ]; then
     mutate_cp "$KIT/templates/skills/$skill" ".claude/skills/$skill"
     echo "  ✓ created .claude/skills/$skill/"
