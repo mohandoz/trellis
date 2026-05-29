@@ -93,6 +93,40 @@
 
 ---
 
+## Milestone: v0.6.0 — Safe Brownfield Adoption
+
+**Shipped:** 2026-05-29
+**Phases:** 4 (21–24) | **Plans:** 12 | **Tasks:** 25
+
+### What Was Built
+`conjure adopt` — a deterministic 5-step pipeline (preconditions → snapshot → inventory → scaffold → audit) that folds an existing repo into the four-layer harness, fully rollback-capable with crash-durable `.conjure-adopt-state` and partial-run recovery. A human-gated `[Read, Bash]` `restructure` skill condenses an oversized CLAUDE.md through pre-write safety gates (invariant-verify + `conjure audit`) that block invalid proposals before approval, applying every mutation through the audited `conjure adopt` chokepoint. Verified E2E against a 500-file `_brownfield-argus` fixture (suite 449/0).
+
+### What Worked
+- **Test-first Wave 0 per phase** — a graceful-red test block landed before production code each phase, giving a concrete red→green signal (21→22→23→24). The suite grew 359 → 449 with zero silent regressions.
+- **Split-responsibility architecture** (CLI mutates, skill judges, `[Read, Bash]` chokepoint) made the security story crisp and the code review tractable.
+- **Driving the real `/dev/tty` paths via `expect`** — the interactive recovery prompt (Phase 22) and approval loop (Phase 23) were genuinely verified by PTS, not hand-waved as "manual."
+- **The milestone integration audit earned its keep** — a live E2E smoke test caught a real headline-flow blocker (adopt refused a clean git repo) that 449 green unit/integration assertions all missed because every pipeline test used a non-git fixture.
+
+### What Was Inefficient
+- **Plan-checker repeatedly blocked on the same Dimension-11 format gate** (RESEARCH "## Open Questions" missing the `(RESOLVED)` suffix) across phases 22/23/24 — the substance was always resolved in VALIDATION.md; only the heading marker was stale. A planner-side convention would have saved three revision passes.
+- **The clean-git-repo blocker should have been a planned test** — the test gap (no pipeline test against a real git repo) was the root cause it escaped until the audit's live smoke test.
+- **The planner corrupted `.planning/ROADMAP.md` twice** (stray Perl/Write edits, em-dash mojibake) and self-recovered both times — fragile editing of a UTF-8 doc.
+
+### Patterns Established
+- `_`-prefixed fixture dirs are excluded from the generic `tests/fixtures/[^_]*/` audit/golden loops — now a hard rule (tripped in 22, locked in 23/24).
+- Pre-write gates over post-write fixes: validate proposed content (invariants + `@import`/cap audit) BEFORE the human approval prompt.
+- Snapshot excludes `.git`/`node_modules`; rollback verifies sha256 zero-diff excluding conjure's own dirs (D-03).
+
+### Key Lessons
+- A green test suite proves the paths you tested, not the path your users take — the headline flow (`conjure adopt` on a real git repo) was the one path no test exercised.
+- When a fix touches a safety primitive (the snapshot copy), verify the invariant it underpins directly (live rollback zero-diff + `git fsck`), not just the unit suite.
+
+### Cost Observations
+- Model mix: predominantly Opus 4.7 (1M context); subagents (researcher/planner/checker/executor/reviewer/fixer/verifier) on Sonnet.
+- Notable: two code-review→fix cycles (Phase 22: 2 Critical; Phase 23: 1 Critical) and the audit-time blocker fix were the highest-value spend — each caught a real correctness/safety bug the suite missed.
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
