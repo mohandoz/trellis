@@ -39,13 +39,20 @@ for hook in "$CONJURE_HOME"/templates/hooks-nodejs/*.mjs; do
   printf '%s\n' ".claude/hooks/$(basename "$hook")" >> "$MANIFEST"
 done
 
-# Skills (one SKILL.md per skill directory). Only count a directory as a skill
-# if it actually contains a SKILL.md — a partial skill dir (e.g. helper scripts
-# staged before the SKILL.md ships) is not yet an installable skill and must not
-# register as drift.
+# Skills. Only count a directory as a skill if it actually contains a SKILL.md — a
+# partial skill dir (e.g. helper scripts staged before the SKILL.md ships) is not yet
+# an installable skill and must not register as drift. For an installable skill,
+# register EVERY file the kit ships under it (SKILL.md plus any attached resources
+# such as gates/*.sh), since init-project.sh copies the whole dir recursively
+# (mutate_cp cp -r). Registering only SKILL.md would flag the attached helper files
+# as spurious "added" drift.
 for skill_dir in "$CONJURE_HOME"/templates/skills/*/; do
   [ -f "$skill_dir/SKILL.md" ] || continue
-  printf '%s\n' ".claude/skills/$(basename "$skill_dir")/SKILL.md" >> "$MANIFEST"
+  skill_name="$(basename "$skill_dir")"
+  while IFS= read -r kit_skill_file; do
+    rel_in_skill="${kit_skill_file#"$skill_dir"}"
+    printf '%s\n' ".claude/skills/$skill_name/$rel_in_skill" >> "$MANIFEST"
+  done < <(find "$skill_dir" -type f 2>/dev/null | sort)
 done
 
 # Agents (6)
@@ -63,10 +70,11 @@ while IFS= read -r rel; do
       kit_file="$CONJURE_HOME/templates/settings.json.tmpl" ;;
     .claude/hooks/*)
       kit_file="$CONJURE_HOME/templates/hooks-nodejs/$(basename "$rel")" ;;
-    .claude/skills/*/SKILL.md)
-      skill_name="${rel#.claude/skills/}"
-      skill_name="${skill_name%/SKILL.md}"
-      kit_file="$CONJURE_HOME/templates/skills/$skill_name/SKILL.md" ;;
+    .claude/skills/*)
+      # Map any harness path under a skill dir (SKILL.md or an attached resource
+      # like gates/*.sh) back to its kit source under templates/skills/.
+      skill_rel="${rel#.claude/skills/}"
+      kit_file="$CONJURE_HOME/templates/skills/$skill_rel" ;;
     .claude/agents/*)
       kit_file="$CONJURE_HOME/templates/agents/$(basename "$rel")" ;;
     .editorconfig|.gitattributes|.claudeignore)

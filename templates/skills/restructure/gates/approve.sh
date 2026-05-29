@@ -72,6 +72,32 @@ if [ ! -r "$MANIFEST" ]; then
   exit 2
 fi
 
+# ── choose where the verb is read from ──────────────────────────────────────────
+# In a genuine interactive session (stdin is a TTY) we read the verb from /dev/tty
+# so a redirected stdin (the manifest/step lists, fed on other fds) does not consume
+# the prompt. When the run is FORCED interactive (CONJURE_FORCE_INTERACTIVE=1 — the
+# test harness and any non-/dev/tty context), /dev/tty may not exist, so we read the
+# verb from stdin (fd 0) where the harness pipes it.
+if [ -t 0 ]; then
+  PROMPT_SRC="/dev/tty"
+else
+  PROMPT_SRC="/dev/stdin"
+fi
+
+# read_choice <out-var-is-CHOICE>: read one verb from PROMPT_SRC into the global
+# CHOICE. Returns non-zero on EOF/read failure (so the caller can break cleanly under
+# set -u instead of crashing on an unbound variable).
+read_choice() {
+  CHOICE=""
+  if [ "$PROMPT_SRC" = "/dev/tty" ]; then
+    read -r -p "  [a]pprove / [s]kip / [e]dit: " CHOICE < /dev/tty 2>/dev/null || return 1
+  else
+    printf '  [a]pprove / [s]kip / [e]dit: '
+    read -r CHOICE || return 1
+  fi
+  return 0
+}
+
 # ── per-class grouped approval over the 6 NON-archive buckets (D-09) ─────────────
 # Archive ops are sequenced LAST by the SKILL.md (D-15) and routed through
 # decision-scan.sh; this driver groups only the non-archive classification buckets.
@@ -88,8 +114,13 @@ for bucket in $BUCKETS; do
   [ "$count" -gt 5 ] && echo "  … and $((count - 5)) more"
 
   while true; do
-    read -r -p "  [a]pprove / [s]kip / [e]dit: " choice < /dev/tty
-    case "$choice" in
+    if ! read_choice; then
+      # EOF / no more input — treat as skip so the bucket still logs one summary line.
+      log_step RESTRUCTURE "skipped $bucket bucket (no response)"
+      echo "  skipped (no response)"
+      break
+    fi
+    case "$CHOICE" in
       a|approve)
         applied=0
         # Apply every proposed step whose dest/src belongs to a file in this bucket.
