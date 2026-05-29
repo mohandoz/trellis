@@ -83,10 +83,16 @@ snapshot_rollback() {
     return 1
   fi
 
-  if ! cp -a "${snapshot_path}/." "${target}/"; then
-    if ! cp -Rp "${snapshot_path}" "${target}/"; then
-      printf '%s\n' "[snapshot_rollback] ERROR: cp failed for ${snapshot_path} → ${target}" >&2
-      return 1
+  # Restore via tar (symmetric with snapshot_create): cp -a's --preserve=all fails
+  # on Windows Git Bash (can't preserve ownership for a non-root user), which aborted
+  # rollback mid-restore. tar -xpf preserves symlinks/perms/timestamps without the
+  # ownership-preservation failure. cp -a → cp -Rp remain as POSIX fallbacks.
+  if ! { ( cd "${snapshot_path}" && tar -cf - . ) | ( cd "${target}" && tar -xpf - ); }; then
+    if ! cp -a "${snapshot_path}/." "${target}/"; then
+      if ! cp -Rp "${snapshot_path}/." "${target}/"; then
+        printf '%s\n' "[snapshot_rollback] ERROR: restore failed for ${snapshot_path} → ${target}" >&2
+        return 1
+      fi
     fi
   fi
 
