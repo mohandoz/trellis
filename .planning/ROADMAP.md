@@ -109,7 +109,7 @@ Plans:
 Plans:
 **Wave 0** *(test-first — gates all later verification)*
 
-- [ ] 23-01-PLAN.md — Wave 0: graceful-red `▸ Phase 23` test block in tests/run.sh + synthetic gate fixtures (invariant present/missing/reflowed, @import, oversized, decision-vocab, clean)
+- [x] 23-01-PLAN.md — Wave 0: graceful-red `▸ Phase 23` test block in tests/run.sh + synthetic gate fixtures (invariant present/missing/reflowed, @import, oversized, decision-vocab, clean)
 
 **Wave 1** *(blocked on Wave 0)*
 
@@ -145,5 +145,5 @@ Plans:
 | 20. Windows + CI Gate | v0.5.0 | 2/2 | Complete | 2026-05-28 |
 | 21. Foundation Libs + Inventory | v0.6.0 | 4/4 | Complete    | 2026-05-28 |
 | 22. `conjure adopt` CLI Core + Rollback | v0.6.0 | 3/3 | Complete    | 2026-05-28 |
-| 23. Restructure Skill + Safety Gates | v0.6.0 | 0/TBD | Not started | - |
+| 23. Restructure Skill + Safety Gates | v0.6.0 | 1/3 | In Progress|  |
 | 24. Integration Tests + Argus Fixture | v0.6.0 | 0/TBD | Not started | - |

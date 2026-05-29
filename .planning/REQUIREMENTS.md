@@ -43,12 +43,12 @@ The deterministic plan output and the CLI↔skill contract.
 
 The human-gated LLM judgment layer, with safety gates that run on *proposed* content before approval.
 
-- [ ] **RESTR-01**: A `restructure` skill (installed by adopt) reads the manifest + oversized CLAUDE.md + doc sprawl and proposes a plan: ≤100-line CLAUDE.md core, what extracts to skills/subagents, what stays as linked reference, what is archived
-- [ ] **RESTR-02**: The skill applies changes ONLY through `conjure adopt` primitives (skill restricted to Read + Bash tools) so every mutation routes through the safe mutate chokepoint and audit trail
-- [ ] **RESTR-03**: User approves each restructure step; large corpora use hierarchical grouped approvals (per-class strategy), never one prompt per file
-- [ ] **RESTR-04**: A constraint-extraction pre-pass captures invariants from CLAUDE.md; the proposed output is verified to contain every invariant, and approval is blocked if any is missing
-- [ ] **RESTR-05**: Proposed content is run through `conjure audit` before the user is asked to approve it — content with `@imports` or cap breaches is blocked pre-write
-- [ ] **RESTR-06**: Archive decisions are sequenced last, individually confirmed, and gated by a decision-vocabulary scan ("decided" / "we chose" / "rationale" / "do not" / "never")
+- [x] **RESTR-01**: A `restructure` skill (installed by adopt) reads the manifest + oversized CLAUDE.md + doc sprawl and proposes a plan: ≤100-line CLAUDE.md core, what extracts to skills/subagents, what stays as linked reference, what is archived
+- [x] **RESTR-02**: The skill applies changes ONLY through `conjure adopt` primitives (skill restricted to Read + Bash tools) so every mutation routes through the safe mutate chokepoint and audit trail
+- [x] **RESTR-03**: User approves each restructure step; large corpora use hierarchical grouped approvals (per-class strategy), never one prompt per file
+- [x] **RESTR-04**: A constraint-extraction pre-pass captures invariants from CLAUDE.md; the proposed output is verified to contain every invariant, and approval is blocked if any is missing
+- [x] **RESTR-05**: Proposed content is run through `conjure audit` before the user is asked to approve it — content with `@imports` or cap breaches is blocked pre-write
+- [x] **RESTR-06**: Archive decisions are sequenced last, individually confirmed, and gated by a decision-vocabulary scan ("decided" / "we chose" / "rationale" / "do not" / "never")
 
 ## v2 Requirements
 
@@ -95,12 +95,12 @@ Which phases cover which requirements. Populated during roadmap creation.
 | INV-02 | Phase 21 | Complete |
 | INV-03 | Phase 21 | Complete |
 | INV-04 | Phase 21 | Complete |
-| RESTR-01 | Phase 23 | Pending |
-| RESTR-02 | Phase 23 | Pending |
-| RESTR-03 | Phase 23 | Pending |
-| RESTR-04 | Phase 23 | Pending |
-| RESTR-05 | Phase 23 | Pending |
-| RESTR-06 | Phase 23 | Pending |
+| RESTR-01 | Phase 23 | Complete |
+| RESTR-02 | Phase 23 | Complete |
+| RESTR-03 | Phase 23 | Complete |
+| RESTR-04 | Phase 23 | Complete |
+| RESTR-05 | Phase 23 | Complete |
+| RESTR-06 | Phase 23 | Complete |
 
 **Coverage:**
 - v1 requirements: 23 total
