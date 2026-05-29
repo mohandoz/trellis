@@ -3441,6 +3441,148 @@ else
   trap - EXIT
 fi
 
+echo
+echo "▸ Phase 24 — SIGKILL recovery after snapshot (criterion 4)"
+
+# NOTE: the interactive [r]/[c]/[s] recovery prompt is MANUAL-ONLY (it needs a
+# real PTY and was already UAT'd in Phases 22/23). This section automates only
+# the non-TTY half (exit 2 + recovery options) and the explicit
+# CONJURE_ADOPT_ROLLBACK=1 re-run zero-diff. The launch+poll+kill is wrapped in a
+# relaunch loop (up to 3 attempts) because the snapshot→scaffold kill window is
+# an inherent timing race: on a fast/loaded runner the process can transition
+# past `inventory` between polls — a legitimate timing slip retries rather than
+# going false-RED.
+if [ "$P22_ADOPT_OK" -ne 1 ] || [ "$P24_ARGUS_OK" -ne 1 ]; then
+  fail "argus generator / adopt.sh missing — Plan 01 generator + Wave 1 adopt.sh must exist first (criterion 4)"
+else
+  P24_SK_TARGET="$(mktemp -d)"
+  P24_SK_PRE="$(mktemp -d)"   # pristine pre-adopt copy for the post-rollback zero-diff
+  trap 'rm -rf "$P24_SK_TARGET" "$P24_SK_PRE"' EXIT
+  bash "$P24_ARGUS_GEN" "$P24_SK_PRE" >/dev/null 2>&1
+  cp -aR "$P24_SK_PRE/." "$P24_SK_TARGET/"   # cp -aR preserves the symlink
+  # Relaunch loop: catch the kill strictly AFTER snapshot, BEFORE scaffold.
+  P24_SK_INWINDOW=0
+  P24_SK_LASTSTEP=""
+  for _attempt in 1 2 3; do
+    DRY_RUN=0 CONJURE_HOME="$CONJURE_HOME" bash "$P22_ADOPT_SH" "$P24_SK_TARGET" >/dev/null 2>&1 &
+    P24_SK_PID=$!
+    # Bounded poll on state.json .current_step (Pattern 3 — more precise than the
+    # Phase 22 backups-dir poll): break when snapshot done, scaffold not yet.
+    P24_SK_LASTSTEP=""
+    for _i in $(seq 1 200); do
+      _step="$(jq -r '.current_step // ""' "$P24_SK_TARGET/.conjure-adopt-state/state.json" 2>/dev/null || true)"
+      [ -n "$_step" ] && P24_SK_LASTSTEP="$_step"
+      case "$_step" in snapshot|inventory) break ;; esac
+      kill -0 "$P24_SK_PID" 2>/dev/null || break   # process already exited
+      sleep 0.05
+    done
+    kill -9 "$P24_SK_PID" 2>/dev/null || true
+    wait "$P24_SK_PID" 2>/dev/null || true
+    # In-window iff the step we observed at kill time was snapshot or inventory.
+    case "$P24_SK_LASTSTEP" in
+      snapshot|inventory) P24_SK_INWINDOW=1; break ;;
+      *)
+        # Out-of-window (finished, or already at scaffold/audit): clear partial
+        # state + backups and relaunch from a pristine tree.
+        rm -rf "$P24_SK_TARGET/.conjure-adopt-state" "$P24_SK_TARGET/.conjure-adopt-backups"
+        rm -rf "$P24_SK_TARGET"
+        mkdir -p "$P24_SK_TARGET"
+        cp -aR "$P24_SK_PRE/." "$P24_SK_TARGET/"
+        ;;
+    esac
+  done
+  if [ "$P24_SK_INWINDOW" -eq 1 ]; then
+    pass "argus SIGKILL: kill landed in window (current_step=$P24_SK_LASTSTEP: snapshot done, scaffold not yet) (criterion 4)"
+  else
+    fail "argus SIGKILL: kill never landed in the snapshot/inventory window after 3 attempts (last step=$P24_SK_LASTSTEP) (criterion 4)"
+  fi
+  # Non-TTY recovery re-run: partial state → exit 2 + last-completed + 3 flags.
+  P24_SK_OUT="$(
+    DRY_RUN=0 CONJURE_HOME="$CONJURE_HOME" \
+      bash "$P22_ADOPT_SH" "$P24_SK_TARGET" < /dev/null 2>&1
+  )"
+  P24_SK_RC=$?
+  if [ "$P24_SK_RC" -eq 2 ]; then
+    pass "argus SIGKILL: non-TTY re-run exits 2 (never auto-mutate) (criterion 4)"
+  else
+    fail "argus SIGKILL: non-TTY re-run expected exit 2, got $P24_SK_RC (criterion 4)"
+  fi
+  if printf '%s\n' "$P24_SK_OUT" | grep -qi 'last completed:'; then
+    pass "argus SIGKILL: re-run prints 'last completed:' partial-state line (criterion 4)"
+  else
+    fail "argus SIGKILL: re-run missing 'last completed:' line — got: $P24_SK_OUT (criterion 4)"
+  fi
+  P24_SK_FLAGS_OK=1
+  for _flag in -- --rollback --resume --start-fresh; do
+    [ "$_flag" = "--" ] && continue
+    printf '%s\n' "$P24_SK_OUT" | grep -q -- "$_flag" || P24_SK_FLAGS_OK=0
+  done
+  if [ "$P24_SK_FLAGS_OK" -eq 1 ]; then
+    pass "argus SIGKILL: re-run lists --rollback/--resume/--start-fresh (criterion 4)"
+  else
+    fail "argus SIGKILL: re-run missing one or more recovery flags — got: $P24_SK_OUT (criterion 4)"
+  fi
+  # Choosing rollback restores the fixture cleanly: drive --rollback, then
+  # diff -r (excl D-03) vs the pristine PRE copy must be empty.
+  DRY_RUN=0 CONJURE_ADOPT_ROLLBACK=1 CONJURE_HOME="$CONJURE_HOME" bash "$P22_ADOPT_SH" --rollback "$P24_SK_TARGET" >/dev/null 2>&1
+  P24_SK_DIFF="$(diff -r \
+    -x '.conjure-adopt-backups' -x '.conjure-archive-*' \
+    -x 'RESTRUCTURE-LOG.md' -x 'adopt-manifest.json' -x '.conjure-adopt-state' \
+    "$P24_SK_PRE" "$P24_SK_TARGET" 2>&1)"
+  if [ -z "$P24_SK_DIFF" ]; then
+    pass "argus SIGKILL: CONJURE_ADOPT_ROLLBACK=1 re-run → diff -r vs PRE empty (excl. D-03) (criterion 4)"
+  else
+    fail "argus SIGKILL: post-rollback diff not empty — got: $P24_SK_DIFF (criterion 4)"
+  fi
+  rm -rf "$P24_SK_TARGET" "$P24_SK_PRE"
+  trap - EXIT
+fi
+
+echo
+echo "▸ Phase 24 — symlink skip + @import pre-write block (criterion 5)"
+
+if [ "$P22_ADOPT_OK" -ne 1 ] || [ "$P24_ARGUS_OK" -ne 1 ]; then
+  fail "argus generator / adopt.sh missing — Plan 01 generator + Wave 1 adopt.sh must exist first (criterion 5)"
+else
+  P24_C5_TARGET="$(mktemp -d)"
+  trap 'rm -rf "$P24_C5_TARGET"' EXIT
+  bash "$P24_ARGUS_GEN" "$P24_C5_TARGET" >/dev/null 2>&1   # creates docs/linked.md symlink + with-import.md @import seed
+  # Live adopt.
+  DRY_RUN=0 CONJURE_HOME="$CONJURE_HOME" bash "$P22_ADOPT_SH" "$P24_C5_TARGET" >/dev/null 2>&1
+  # (5a) The symlink path must be ABSENT from manifest files[] (inventory skips
+  # symlinks). jq -e select returns non-zero when nothing matches.
+  if ! jq -e --arg p 'docs/linked.md' '.files[]?|select(.path==$p)' \
+       "$P24_C5_TARGET/adopt-manifest.json" >/dev/null 2>&1; then
+    pass "argus symlink: docs/linked.md absent from manifest files[] — inventory skipped it (criterion 5)"
+  else
+    fail "argus symlink: docs/linked.md present in manifest files[] — symlink not skipped (criterion 5)"
+  fi
+  # (5b) Stage the @import seed as a proposed CLAUDE.md → audit-staged.sh exits 2.
+  P24_C5_AUD="$CONJURE_HOME/templates/skills/restructure/gates/audit-staged.sh"
+  mkdir -p "$P24_C5_TARGET/.conjure-adopt-state/staging"
+  printf '# CLAUDE\n@.claude/skills/x/SKILL.md\n' > "$P24_C5_TARGET/.conjure-adopt-state/staging/CLAUDE.md"
+  CONJURE_HOME="$CONJURE_HOME" bash "$P24_C5_AUD" "$P24_C5_TARGET/.conjure-adopt-state/staging/CLAUDE.md" >/dev/null 2>&1
+  P24_C5_AUD_RC=$?
+  if [ "$P24_C5_AUD_RC" -eq 2 ]; then
+    pass "argus @import: audit-staged.sh on staged @import CLAUDE.md → exit 2 BLOCK (criterion 5)"
+  else
+    fail "argus @import: audit-staged.sh expected exit 2, got $P24_C5_AUD_RC (criterion 5)"
+  fi
+  # (5c) The block fired before approval → the staged @import was never applied,
+  # so the target CLAUDE.md must NOT contain an ^@ line.
+  if grep -q '^@' "$P24_C5_TARGET/CLAUDE.md" 2>/dev/null; then
+    fail "argus @import: ^@ line leaked into target CLAUDE.md (criterion 5)"
+  else
+    pass "argus @import: target CLAUDE.md never gained an ^@ line — @import never written (criterion 5)"
+  fi
+  rm -rf "$P24_C5_TARGET"
+  trap - EXIT
+fi
+
+# ──────────────────────────────────────────────────────────────────────────────
+# End Phase 24 test block
+# ──────────────────────────────────────────────────────────────────────────────
+
 # Clean up any gh-hiding stub dirs created by mk_path_without_gh
 for _s in $GH_HIDE_STUBS; do rm -rf "$_s"; done
 
