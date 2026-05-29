@@ -236,6 +236,7 @@ report() {
   echo "Adoption report"
   echo "  Inventory:   ${inv_total} files (${inv_unknown} unknown)"
   echo "  Scaffolded:  ${created_count} layer files"
+  [ "${created_count:-0}" -eq 0 ] && echo "  Scaffolded:  nothing to scaffold"  # O-1: emit ROADMAP criterion-3 literal phrase on a zero-scaffold (idempotent) re-run
   echo "  Archived:    ${ARCHIVED_COUNT:-0} files"
   echo "  CLAUDE.md:   ${before_lines} → ${after_lines} lines (cap ${CLAUDE_MD_CAP:-100})"
   echo "  Snapshot:    ${CONJURE_SNAPSHOT_PATH:-(dry-run)}"
