@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v0.6.0
 milestone_name: Safe Brownfield Adoption
-status: executing
-last_updated: "2026-05-29T02:05:42.858Z"
+status: verifying
+last_updated: "2026-05-29T02:21:04.422Z"
 last_activity: 2026-05-29
 progress:
   total_phases: 4
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 10
-  completed_plans: 9
-  percent: 50
+  completed_plans: 10
+  percent: 75
 ---
 
 # Project State
@@ -26,10 +26,10 @@ See: .planning/PROJECT.md (updated 2026-05-28)
 
 Phase: 23 (restructure-skill-safety-gates) — EXECUTING
 Plan: 3 of 3
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-05-29
 
-Progress: [█████████░] 90%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -59,6 +59,7 @@ Progress: [█████████░] 90%
 | Phase 22 P22-03 | 40 | 2 tasks | 2 files |
 | Phase 23 P23-01 | 14 | 2 tasks | 9 files |
 | Phase 23 P23-02 | 35 | 2 tasks | 5 files |
+| Phase 23 P23-03 | 9 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -83,6 +84,8 @@ Full decision log in PROJECT.md Key Decisions table. Key v0.6.0 design decisions
 - [Phase ?]: Phase 23 fixtures live under tests/fixtures/_restructure-gates/ (leading underscore) to dodge the generic tests/fixtures/[^_]*/ audit + golden-EXPECT loops at run.sh:326/368/390
 - [Phase ?]: Phase 23 INVARIANTS.txt holds 5 canonical tokens (exit 2, @import, ≤100, mutate.sh, do not delete), proven against case/whitespace-mangled reflowed-invariant.md for the D-07 normalized-substring contract
 - [Phase ?]: Phase 23 Wave 1: 4 deterministic gate helpers shipped (verify-invariants/audit-staged/extract-invariants/decision-scan); all exit 2 never exit 1, shellcheck-clean; audit-staged BLOCK keys on named conditions not audit rc; fixed check.sh to skip SKILL.md-less skill dirs
+- [Phase 23]: Wave 2: thin restructure SKILL.md ([Read, Bash] chokepoint, <=200 lines, orchestration prose only) + per-class /dev/tty approve/skip/edit driver (non-TTY exit-2, one RESTRUCTURE summary line per bucket, no external editor on edit/O-3); scaffolded via init-project.sh whole-dir copy
+- [Phase 23]: check.sh drift manifest now registers every kit file under an installable skill dir (SKILL.md + attached gates/*.sh), not just SKILL.md - whole-dir-copied helpers are no longer spurious added-drift and ARE integrity-checked
 
 ### Pending Todos
 
@@ -108,6 +111,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-29T02:04:25.946Z
+Last session: 2026-05-29T02:20:03.671Z
 Stopped at: Completed 23-01-PLAN.md (Phase 23 Wave 0 test-first foundation)
 Resume file: None
