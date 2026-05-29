@@ -303,6 +303,19 @@ rollback_path() {
   # Set the log path so snapshot_rollback auto-logs ROLLBACK and our log_step lands here.
   RESTRUCTURE_LOG_PATH="$TARGET/RESTRUCTURE-LOG.md"
 
+  # 3-point sha256 diagnostic (quiet; CONJURE_ADOPT_ROLLBACK_DIAG=1 -> stderr only).
+  # Pin EXACTLY where a CLAUDE.md byte-divergence enters the snapshot<->restore path
+  # on Windows Git Bash (cannot reproduce locally -- surfaces on the windows-test log):
+  #   (a) live target right before restore (== bytes recorded as the before-hash)
+  #   (b) the snapshot's OWN copy (snap/CLAUDE.md)
+  #   (c) restored target after snapshot_rollback (printed below, post-restore)
+  # (a)!=(b) => tar CREATE corrupts; (b)!=(c) => tar RESTORE corrupts; all equal =>
+  # corruption is elsewhere. No-op unless the diag flag is set.
+  if [ "${CONJURE_ADOPT_ROLLBACK_DIAG:-0}" = "1" ]; then
+    [ -f "$TARGET/CLAUDE.md" ] && printf '  [diag] sha CLAUDE.md (a) live-pre-restore = %s\n' "$(sha_of "$TARGET/CLAUDE.md")" >&2
+    [ -f "$snap/CLAUDE.md" ]   && printf '  [diag] sha CLAUDE.md (b) snapshot-copy    = %s\n' "$(sha_of "$snap/CLAUDE.md")" >&2
+  fi
+
   # Step 1: whole-tree restore (restores mutated files + un-archives originals).
   if ! snapshot_rollback "$snap" "$TARGET"; then
     echo "✗ adopt.sh: --rollback: snapshot restore failed from $snap" >&2
@@ -320,6 +333,11 @@ rollback_path() {
   # leaks it into the target root. Remove it so the post-rollback tree is clean (D-03).
   rm -f "$TARGET/.snapshot-meta.json"
 
+  # 3-point diag (c): restored target after snapshot_rollback. Compare to (a)/(b) above.
+  if [ "${CONJURE_ADOPT_ROLLBACK_DIAG:-0}" = "1" ]; then
+    [ -f "$TARGET/CLAUDE.md" ] && printf '  [diag] sha CLAUDE.md (c) restored-target = %s\n' "$(sha_of "$TARGET/CLAUDE.md")" >&2
+  fi
+
   # Step 2: delete every scaffolded created[] path (D-02), then prune any directory
   # that became empty AND is not present in the snapshot (scaffold-created dirs the
   # snapshot can't account for) — keeps the post-rollback tree byte-identical (D-03).
@@ -329,16 +347,12 @@ rollback_path() {
     mutate_rm "$TARGET/$p"
     created_count=$((created_count + 1))
   done < "$created_list"
-  # Safety net (D-02/D-03): conjure-managed, gitignored scaffold artifacts that
-  # init-project.sh always creates fresh and the snapshot (taken PRE-scaffold) never
-  # holds. These belong to created[], but on a Windows runner the find/comm diff that
-  # populates created[] can miss a path (separator/locale edge), leaving the artifact
-  # behind and breaking the zero-diff post-rollback contract. rm -f is idempotent — a
-  # no-op when the file was already removed above. Keep this list = conjure-owned files
-  # that are never part of a user's pre-adopt tree.
-  for _orphan in ".claude/COMPOUND-CANDIDATES.md"; do
-    [ -e "$TARGET/$_orphan" ] && mutate_rm "$TARGET/$_orphan"
-  done
+  # NOTE: the prior per-file `rm -f` orphan net (e.g. .claude/COMPOUND-CANDIDATES.md)
+  # is gone. created[] is now populated authoritatively from init-project.sh's emitted
+  # manifest (CONJURE_CREATED_MANIFEST), which records every file it scaffolds —
+  # including the gitignored COMPOUND-CANDIDATES.md — so the step-2 loop above already
+  # deletes them. The Windows find/comm lossiness that made the band-aid necessary no
+  # longer feeds created[]; the manifest is separator/locale-independent.
   # Bottom-up empty-dir prune (longest paths first). Only remove dirs absent from the
   # snapshot — any original dir (even if it ended up empty) lives in the snapshot and
   # is preserved. rmdir is a no-op on non-empty dirs, so this never deletes content.
@@ -751,9 +765,20 @@ run_pipeline() {
   if [ "${DRY_RUN:-0}" != "1" ]; then
     state_set_step scaffold started
   fi
-  # Capture the file set before/after to record newly-created harness paths (D-02).
-  local pre_files post_files
-  pre_files="$(mktemp)"; post_files="$(mktemp)"
+  # Record newly-created harness paths into created[] (D-02) so rollback deletes them.
+  #
+  # Windows fix: the legacy find/comm before/after DIFF is lossy on Git Bash -- path
+  # separator / locale edges in `comm` silently drop scaffolded paths, leaving
+  # created[] incomplete so rollback misses files (the zero-diff contract breaks, and
+  # the leftover wandered file-to-file as we patched it). PRIMARY source of truth is
+  # now a created-manifest EMITTED by init-project.sh itself (it knows exactly which
+  # top-level paths it wrote): export CONJURE_CREATED_MANIFEST and read it back. Each
+  # manifest entry is a target-relative path that may be a FILE or a DIRECTORY (skill
+  # dirs are copied whole); expand directory entries to their constituent files here
+  # because rollback's mutate_rm is per-file (rm -f never removes a non-empty dir).
+  # The find/comm diff stays ONLY as a fallback when no manifest is produced.
+  local pre_files post_files created_manifest
+  pre_files="$(mktemp)"; post_files="$(mktemp)"; created_manifest="$(mktemp)"
   if [ "${DRY_RUN:-0}" != "1" ]; then
     ( cd "$TARGET" && find . -type f \
         -not -path './.conjure-adopt-backups/*' \
@@ -765,7 +790,8 @@ run_pipeline() {
   fi
   export CONJURE_HOME
   export DRY_RUN="${DRY_RUN:-0}"
-  bash "$CONJURE_HOME/scripts/init-project.sh" existing "$TARGET" >/dev/null 2>&1 || true
+  CONJURE_CREATED_MANIFEST="$created_manifest" \
+    bash "$CONJURE_HOME/scripts/init-project.sh" existing "$TARGET" >/dev/null 2>&1 || true
   if [ "${DRY_RUN:-0}" != "1" ]; then
     ( cd "$TARGET" && find . -type f \
         -not -path './.conjure-adopt-backups/*' \
@@ -774,19 +800,39 @@ run_pipeline() {
         -not -name 'RESTRUCTURE-LOG.md' \
         -not -name 'adopt-manifest.json' \
         2>/dev/null | sort ) > "$post_files"
-    # New files = present in post, absent in pre. Record into created[] (D-02 —
-    # scaffolded harness paths only; the find excludes conjure's own dirs).
-    local newf
+    # Build a normalized, deduped flat file list into $created_flat, then record it.
+    local created_flat newf created_n=0
+    created_flat="$(mktemp)"
+    if [ -s "$created_manifest" ]; then
+      # PRIMARY (Windows-safe): trust init-project.sh's own created list. Normalize a
+      # leading ./, expand any directory entry to its files (relative to $TARGET).
+      while IFS= read -r newf; do
+        newf="${newf#./}"
+        [ -n "$newf" ] || continue
+        if [ -d "$TARGET/$newf" ]; then
+          ( cd "$TARGET" && find "$newf" -type f 2>/dev/null ) >> "$created_flat"
+        elif [ -e "$TARGET/$newf" ]; then
+          printf '%s\n' "$newf" >> "$created_flat"
+        fi
+      done < "$created_manifest"
+    else
+      # FALLBACK (no manifest): legacy find/comm diff (present in post, absent in pre).
+      comm -13 "$pre_files" "$post_files" >> "$created_flat"
+    fi
+    # Record deduped, ./-normalized paths into created[]; mutate_rm is per-file (D-02).
     while IFS= read -r newf; do
+      newf="${newf#./}"
       [ -n "$newf" ] || continue
-      state_add_created "${newf#./}"
-    done < <(comm -13 "$pre_files" "$post_files")
-    log_step SCAFFOLD "scaffolded $(comm -13 "$pre_files" "$post_files" | grep -c . | tr -d ' ') missing-layer file(s)"
+      state_add_created "$newf"
+      created_n=$((created_n + 1))
+    done < <(sort -u "$created_flat")
+    rm -f "$created_flat"
+    log_step SCAFFOLD "scaffolded ${created_n} missing-layer file(s)"
     state_set_step scaffold completed
   else
     log_step SCAFFOLD "[dry-run] would scaffold missing layers via init-project.sh existing"
   fi
-  rm -f "$pre_files" "$post_files"
+  rm -f "$pre_files" "$post_files" "$created_manifest"
 
   # CLAUDE.md "after" line count + mutated[] record (SAFE-04). Phase 22 does not
   # condense CLAUDE.md, so before==after; recording it satisfies the .mutated[]

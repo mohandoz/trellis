@@ -19,6 +19,20 @@ fi
 
 cd "$TARGET"
 
+# Created-manifest emission (Windows rollback fix): when CONJURE_CREATED_MANIFEST is
+# set (adopt.sh exports it), append every top-level path we ACTUALLY create — one
+# target-relative path per line. This is the authoritative created[] source for
+# adopt's rollback (D-02), replacing the find/comm before/after diff that was lossy
+# on Windows Git Bash (path-separator/locale edges silently dropped paths). Entries
+# may be files OR directories (skill dirs are copied whole); adopt.sh expands dirs to
+# files. We only record inside each `[ ! -f ]`/`[ ! -d ]` guard, so a pre-existing
+# user file is never recorded (rollback must not delete the user's own files).
+_record_created() {
+  [ -n "${CONJURE_CREATED_MANIFEST:-}" ] || return 0
+  [ "${DRY_RUN:-0}" = "1" ] && return 0
+  printf '%s\n' "$1" >> "$CONJURE_CREATED_MANIFEST"
+}
+
 echo "→ Initializing Claude Code config in: $TARGET (mode: $MODE)"
 echo "→ Using kit at: $KIT"
 
@@ -32,6 +46,7 @@ mutate_mkdir ".claude/docs"
 for f in .editorconfig .gitattributes .claudeignore; do
   if [ ! -f "$f" ]; then
     mutate_cp "$KIT/templates/$f" "$f"
+    _record_created "$f"
     echo "  ✓ created $f"
   else
     echo "  • $f exists — skipping"
@@ -41,6 +56,7 @@ done
 # 3. Copy settings.json template
 if [ ! -f .claude/settings.json ]; then
   mutate_cp "$KIT/templates/settings.json.tmpl" ".claude/settings.json"
+  _record_created ".claude/settings.json"
   echo "  ✓ created .claude/settings.json"
 else
   echo "  • .claude/settings.json exists — skipping"
@@ -51,6 +67,7 @@ for hook in "$KIT"/templates/hooks-nodejs/*.mjs; do
   name=$(basename "$hook")
   if [ ! -f ".claude/hooks/$name" ]; then
     mutate_cp "$hook" ".claude/hooks/$name"
+    _record_created ".claude/hooks/$name"
     echo "  ✓ created .claude/hooks/$name"
   fi
 done
@@ -59,6 +76,7 @@ done
 for skill in code-graph docs-lookup web-research ast-search repo-pack sql-explorer restructure _anatomy; do
   if [ ! -d ".claude/skills/$skill" ]; then
     mutate_cp "$KIT/templates/skills/$skill" ".claude/skills/$skill"
+    _record_created ".claude/skills/$skill"
     echo "  ✓ created .claude/skills/$skill/"
   fi
 done
@@ -67,6 +85,7 @@ done
 for skill in architecture domain-model api-routes data-access messaging database-schema build-deploy testing debugging pr-review security-review release; do
   if [ ! -d ".claude/skills/$skill" ]; then
     mutate_cp "$KIT/templates/skills/$skill" ".claude/skills/$skill"
+    _record_created ".claude/skills/$skill"
     echo "  ✓ created .claude/skills/$skill/ (TEMPLATE — Claude will fill in)"
   fi
 done
@@ -75,6 +94,7 @@ done
 for agent in code-explorer.md test-writer.md migration-writer.md security-auditor.md doc-writer.md diff-reviewer.md; do
   if [ ! -f ".claude/agents/$agent" ]; then
     mutate_cp "$KIT/templates/agents/$agent" ".claude/agents/$agent"
+    _record_created ".claude/agents/$agent"
     echo "  ✓ created .claude/agents/$agent"
   fi
 done
@@ -84,12 +104,14 @@ mutate_mkdir "docs/adr"
 for doc in ARCHITECTURE GLOSSARY RUNBOOK; do
   if [ ! -f "docs/$doc.md" ]; then
     mutate_cp "$KIT/templates/docs/$doc.md.tmpl" "docs/$doc.md"
+    _record_created "docs/$doc.md"
     echo "  ✓ created docs/$doc.md (TEMPLATE)"
   fi
 done
 
 if [ ! -f docs/adr/0001-record-architecture-decisions.md ]; then
   mutate_cp "$KIT/templates/docs/ADR-TEMPLATE.md" "docs/adr/0001-record-architecture-decisions.md"
+  _record_created "docs/adr/0001-record-architecture-decisions.md"
   echo "  ✓ created docs/adr/0001-*.md (TEMPLATE)"
 fi
 
@@ -109,12 +131,14 @@ if [ ! -f .env.example ]; then
 # Secrets (placeholder values only)
 # API_KEY=changeme'
   mutate_write ".env.example" "$ENV_CONTENT"
+  _record_created ".env.example"
   echo "  ✓ created .env.example"
 fi
 
 # 10. Empty COMPOUND-CANDIDATES for the Stop hook to append into
 if [ ! -f .claude/COMPOUND-CANDIDATES.md ]; then
   mutate_write ".claude/COMPOUND-CANDIDATES.md" "# Compound Engineering — Candidate Rules from Sessions"
+  _record_created ".claude/COMPOUND-CANDIDATES.md"
 fi
 
 mutate_summary

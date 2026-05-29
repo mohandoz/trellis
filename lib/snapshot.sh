@@ -34,9 +34,19 @@ snapshot_create() {
   # portable exclusion (BSD + GNU) while preserving symlinks/perms/timestamps; the
   # `cd && tar` guards a bad target dir. cp -a is the no-exclusion fallback if tar fails
   # (rare — a stray .git copy is then cosmetic-only, never a correctness problem).
+  #
+  # Windows fix: archive via a TEMP FILE, not a `tar -cf - | tar -xpf -` PIPE. On
+  # MSYS/MinGW (Git Bash) a pipe carrying a binary tar stream gets text-mode CRLF
+  # translation that corrupts the archive — the round-trip is NOT byte-faithful, so
+  # rollback's sha256-verify later sees a mismatch on an otherwise-unchanged file.
+  # Writing the archive to a real file (binary I/O on both ends) avoids the pipe
+  # entirely and keeps bytes intact across create→restore.
   mkdir -p "${snap_dir}"
-  if ! { ( cd "${target}" && tar -cf - --exclude='./.git' --exclude='./node_modules' . ) \
-         | ( cd "${snap_dir}" && tar -xpf - ); }; then
+  local _snap_tar
+  _snap_tar="$(mktemp)"
+  if ! { ( cd "${target}" && tar -cf "${_snap_tar}" --exclude='./.git' --exclude='./node_modules' . ) \
+         && ( cd "${snap_dir}" && tar -xpf "${_snap_tar}" ); }; then
+    rm -f "${_snap_tar}"
     if ! cp -a "${target}/." "${snap_dir}/"; then
       # Pitfall 5 cross-platform fallback: cp -Rp (POSIX)
       if ! cp -Rp "${target}" "${snap_dir}/"; then
@@ -44,6 +54,8 @@ snapshot_create() {
         return 1
       fi
     fi
+  else
+    rm -f "${_snap_tar}"
   fi
 
   # Write snapshot metadata (git state capture for rollback reference)
@@ -87,13 +99,25 @@ snapshot_rollback() {
   # on Windows Git Bash (can't preserve ownership for a non-root user), which aborted
   # rollback mid-restore. tar -xpf preserves symlinks/perms/timestamps without the
   # ownership-preservation failure. cp -a → cp -Rp remain as POSIX fallbacks.
-  if ! { ( cd "${snapshot_path}" && tar -cf - . ) | ( cd "${target}" && tar -xpf - ); }; then
+  #
+  # Windows fix (symmetric with snapshot_create): archive via a TEMP FILE, not a
+  # `tar -cf - | tar -xpf -` PIPE. The MSYS/MinGW pipe text-mode CRLF translation
+  # corrupts the binary tar stream, so the restored bytes diverge from the snapshot —
+  # rollback step-3 sha256-verify then aborts on an unchanged file. A real archive
+  # file keeps binary I/O on both ends and restores byte-faithfully.
+  local _rb_tar
+  _rb_tar="$(mktemp)"
+  if ! { ( cd "${snapshot_path}" && tar -cf "${_rb_tar}" . ) \
+         && ( cd "${target}" && tar -xpf "${_rb_tar}" ); }; then
+    rm -f "${_rb_tar}"
     if ! cp -a "${snapshot_path}/." "${target}/"; then
       if ! cp -Rp "${snapshot_path}/." "${target}/"; then
         printf '%s\n' "[snapshot_rollback] ERROR: restore failed for ${snapshot_path} → ${target}" >&2
         return 1
       fi
     fi
+  else
+    rm -f "${_rb_tar}"
   fi
 
   if [ -n "${RESTRUCTURE_LOG_PATH:-}" ]; then

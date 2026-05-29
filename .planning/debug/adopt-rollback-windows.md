@@ -56,19 +56,70 @@ reasoning_checkpoint: cannot reproduce locally (Windows-only). The COMPOUND-CAND
 - timestamp 2026-05-29: post-rollback `.claude/hooks` file count > 0 on Windows (assertion "scaffolded created[] files removed" fails) → step2 created-delete did NOT run → step1 snapshot_rollback aborted (rollback_path line 311) for the argus case (whole .claude survives). adopt case leaves only COMPOUND-CANDIDATES.md (ambiguous — may be a separate created[]-tracking gap or step3 abort).
 - timestamp 2026-05-29: diagnostic commit 74b655d in-flight (run 26649103286) to capture the suppressed rollback stderr.
 
+## Update 2026-05-29 (CI run 26650931581, commit 7fad7e6) — FIX FAILED
+
+Moving `claude_before_sha` capture to AFTER snapshot (7fad7e6) did NOT fix it. SAME stderr: `✗ adopt.sh: --rollback: sha256 mismatch after restore: CLAUDE.md`. Still PASS 434 / FAIL 5.
+- The `rm -f .claude/COMPOUND-CANDIDATES.md` net WORKED — the diff leftover changed from COMPOUND-CANDIDATES.md to `.claude/agents/code-explorer.md` → created[] tracking is GENERICALLY lossy on Windows (the find/comm diff misses scaffolded paths), not specific to one file. The per-file rm-f net is the wrong shape — created[] population itself is broken on Windows.
+
+REFINED ROOT CAUSE: the before-hash is now captured post-snapshot from the LIVE target CLAUDE.md (~698), nothing touches CLAUDE.md between snapshot (692) and capture, yet `sha_of(restored CLAUDE.md) != claude_before_sha`. Therefore the **tar snapshot→restore round-trip is NOT byte-faithful on Windows Git Bash**. Prime suspect: the binary tar stream through the `( cd … && tar -cf - . ) | ( cd … && tar -xpf - )` PIPE is corrupted by MSYS/MinGW text-mode pipe translation (CRLF mangling of the binary archive). snapshot_create uses the same pipe — it "works" only because nothing verified byte-fidelity until rollback's sha-verify.
+
+## Current Focus 2
+
+hypothesis: the tar pipe (`tar -cf - | tar -xpf -`) corrupts the binary archive on MSYS, so snapshot's and/or restored CLAUDE.md bytes differ from the live file. SECONDARY: created[] population (find/comm diff in run_pipeline scaffold step) misses paths on Windows, leaving scaffolded files after rollback.
+test/diagnostic (one CI cycle): print sha256 of CLAUDE.md at 3 points on Windows — (a) live target post-snapshot, (b) inside the snapshot dir (snap/CLAUDE.md), (c) restored target post-snapshot_rollback. (a)!=(b) ⇒ tar CREATE corrupts; (b)!=(c) ⇒ tar RESTORE corrupts; (a)==(b)==(c) ⇒ corruption is elsewhere.
+candidate fix (apply same cycle): replace the tar PIPE with a tar TEMP FILE (no pipe → no MSYS text translation): `tmp=$(mktemp); ( cd src && tar -cf "$tmp" --exclude=./.git --exclude=./node_modules . ); ( cd dest && tar -xpf "$tmp" ); rm -f "$tmp"` in BOTH snapshot_create and snapshot_rollback. If the pipe was the corruptor, this fixes byte-fidelity.
+secondary fix: make created[] population robust on Windows (capture scaffolded paths reliably — e.g. have init-project.sh emit the created list, or normalize path separators in the find/comm diff) so rollback removes ALL scaffolded files (drop the per-file rm-f net once created[] is correct).
+next_action: add the 3-point sha diag + switch tar pipe → tar temp-file in lib/snapshot.sh; keep macOS green; push ONE cycle; read the diag to confirm create-vs-restore + whether the temp-file fix cleared it.
+
+## Update 2026-05-29 (fix #2 applied — tar temp-file + manifest-driven created[])
+
+APPLIED (pending the single windows-test CI confirmation cycle):
+
+1. **lib/snapshot.sh — tar PIPE → tar TEMP FILE in BOTH functions.** `snapshot_create`
+   and `snapshot_rollback` now archive via `mktemp` instead of `tar -cf - | tar -xpf -`.
+   No pipe ⇒ no MSYS/MinGW text-mode CRLF translation of the binary tar stream, so the
+   create→restore round-trip is byte-faithful on Windows Git Bash. `cp -a` / `cp -Rp`
+   remain as POSIX fallbacks; `tar -xpf` still preserves symlinks/perms/timestamps.
+2. **3-point sha256 diagnostic** in `rollback_path()` (gated on
+   `CONJURE_ADOPT_ROLLBACK_DIAG=1`, stderr-only): prints CLAUDE.md sha at (a) live
+   target pre-restore, (b) snapshot's own copy, (c) restored target. If the temp-file
+   fix does NOT clear it, (a)!=(b) ⇒ tar CREATE corrupts; (b)!=(c) ⇒ tar RESTORE
+   corrupts; all-equal ⇒ corruption is elsewhere. The P22 rollback test runs with the
+   diag flag so the values surface on the windows-test log.
+3. **created[] population — root fix, band-aid removed.** `init-project.sh` now emits a
+   `CONJURE_CREATED_MANIFEST` (one target-relative path per actual creation, inside each
+   `[ ! -f ]`/`[ ! -d ]` guard). `adopt.sh` consumes the manifest as the AUTHORITATIVE
+   created[] source (separator/locale-independent), expanding directory entries (skill
+   dirs are copied whole) into their files because `mutate_rm` is per-file. The lossy
+   find/comm diff is kept ONLY as a fallback when no manifest is produced. The per-file
+   `rm -f` orphan net (COMPOUND-CANDIDATES.md) is DELETED — it is now recorded in
+   created[] like every other scaffold file and removed in rollback step-2.
+
+Local (macOS) verification BEFORE this CI cycle:
+- Full suite `bash tests/run.sh` → **PASS 439 / FAIL 0** (all P22/P24 rollback + SAFE-04 green).
+- `shellcheck -S error -e SC2164,SC2044,SC2034,SC2155` CLEAN on adopt.sh, init-project.sh, snapshot.sh.
+- Live adopt+rollback on a git fixture (pre-existing CLAUDE.md+index.js): created[]=47 files
+  (incl. COMPOUND-CANDIDATES.md, code-explorer.md, and skill-dir files like
+  skills/code-graph/SKILL.md → directory expansion confirmed); rollback rc=0; 3-point diag
+  printed all three shas EQUAL (macOS, as expected — corruption is Windows-only);
+  post-rollback tree == pre-adopt tree (CLAUDE.md, index.js), zero leftover scaffold files.
+
 ## Eliminated
 
-- hypothesis: snapshot .git read-only objects cause the rollback cp failure — ELIMINATED: snapshot_create now excludes .git (a1ff4ca); rollback still fails without .git in the snapshot.
-- hypothesis: cp -a ownership-preservation is the sole cause — PARTIALLY ELIMINATED: switched rollback to tar -xpf (112cb70), rollback still aborts.
+- hypothesis: snapshot .git read-only objects cause the rollback cp failure — ELIMINATED: snapshot_create now excludes .git (a1ff4ca); rollback still fails without .git.
+- hypothesis: cp -a ownership-preservation is the sole cause — ELIMINATED: switched to tar (112cb70), rollback still aborts.
+- hypothesis: before-hash capture TIMING (pre- vs post-snapshot / pre-audit CRLF) — ELIMINATED: moved capture post-snapshot (7fad7e6), mismatch persists. The bytes diverge across the tar round-trip itself, not the capture point.
+- hypothesis: COMPOUND-CANDIDATES.md is a one-off created[] gap — ELIMINATED: leftover moved to code-explorer.md → created[] tracking is generically lossy on Windows.
+- hypothesis: before-hash CAPTURE POINT was the cause — ELIMINATED (fix #1, 7fad7e6): snapshot-aligning the capture did NOT fix it. The mismatch is the tar snapshot↔restore round-trip itself not being byte-faithful on Windows Git Bash. Prime suspect = the `tar -cf - | tar -xpf -` PIPE corrupted by MSYS text-mode translation; fix #2 replaces it with a tar temp file (no pipe).
 
 ## Resolution
 
-- **root_cause:** `claude_before_sha` was captured from the LIVE tree at adopt.sh:672 — BEFORE `snapshot_guarded` (line ~692). The rollback contract restores the SNAPSHOT's bytes, so step-3 sha256-verify (adopt.sh ~352) compared the restored (snapshot) CLAUDE.md against a before-hash the snapshot could not reproduce. On the Windows runner (`core.autocrlf=true`, CRLF checkout) the tar/cp snapshot↔restore round-trip diverged from the pre-snapshot reading, so step-3 raised `sha256 mismatch after restore: CLAUDE.md` → `exit 2`, skipping the `[ROLLBACK]` log. (audit-setup.sh was ELIMINATED as a CLAUDE.md writer — it only reads line-count + greps for @imports; hypothesis C dead.) The `mutated[]` entry itself is benign once the before-hash is snapshot-aligned: basic adopt does not mutate CLAUDE.md (before==after), and the SAFE-04 test at tests/run.sh:2653 requires the entry to exist — so a pure "skip the record" fix would have broken the macOS suite.
-  SECONDARY: `.claude/COMPOUND-CANDIDATES.md` is a conjure-managed, gitignored scaffold artifact created by init-project.sh:117. It is normally tracked in created[] (confirmed on macOS) and deleted in rollback step-2, but on the Windows runner the find/comm diff that populates created[] can miss it, leaving it behind and breaking the zero-diff post-rollback contract.
-- **fix:** (A, primary) Move the `claude_before_sha` capture to AFTER `snapshot_guarded`, so the recorded before-hash == the exact bytes the snapshot holds and `snapshot_rollback` reproduces. Step-3 then matches on every platform; the SAFE-04 `mutated[0].before` entry is still recorded (basic adopt before==after). (B, secondary belt) In rollback step-2, after the created[] delete loop, add an idempotent `rm -f` safety net for conjure-owned gitignored scaffold artifacts (`.claude/COMPOUND-CANDIDATES.md`) that are never part of a user's pre-adopt tree (snapshot is taken pre-scaffold) — removes any created[]-tracking miss before the empty-dir prune.
-- **verification:** (1) `grep` confirmed audit-setup.sh never writes CLAUDE.md. (2) macOS full suite `bash tests/run.sh` → **PASS 439 / FAIL 0** (SAFE-04 .mutated[0].before + all P22/P24 rollback assertions green). (3) `shellcheck -S error -e SC2164,SC2044,SC2034,SC2155 scripts/adopt.sh` → CLEAN. (4) Local adopt+rollback (fixture with pre-existing .claude): rollback rc=0, COMPOUND removed, `[ROLLBACK]` logged, zero-diff vs pre-adopt, `mutated[0].before` recorded. (5) PENDING: one `windows-test` CI cycle (~21 min) to confirm green — orchestrator owns the `git push` (hook-gated).
-- **files_changed:** `scripts/adopt.sh` (capture move + rollback step-2 orphan safety net).
+- **root_cause:** The `conjure adopt --rollback` step-3 sha256-verify (adopt.sh ~380) aborts on the Windows `windows-test` CI job with `sha256 mismatch after restore: CLAUDE.md` → `exit 2`, skipping the `[ROLLBACK]` log and leaving scaffolded files behind. The CRLF/capture-timing hypotheses were ELIMINATED (fix #1, 7fad7e6, did NOT help). The real cause is that the snapshot↔restore **tar round-trip is not byte-faithful on Windows Git Bash**: both `snapshot_create` and `snapshot_rollback` streamed the archive through a `( cd src && tar -cf - . ) | ( cd dest && tar -xpf - )` PIPE, and MSYS/MinGW applies text-mode CRLF translation to pipe data, corrupting the binary tar stream. So the restored CLAUDE.md bytes diverge from the recorded before-hash even though nothing mutated the file. (macOS/Linux pipes are binary-safe, hence green there.)
+  SECONDARY: created[] was populated by a `find`+`comm -13` before/after DIFF in the scaffold step. `comm` is locale/separator-sensitive on Git Bash and silently dropped scaffolded paths, so rollback step-2 missed files (the leftover wandered COMPOUND-CANDIDATES.md → code-explorer.md as it was patched per-file). Root cause: created[] had no authoritative source; the diff was a proxy.
+- **fix:** (1, primary) **lib/snapshot.sh** — replace the tar PIPE with a tar TEMP FILE (`mktemp`) in BOTH `snapshot_create` and `snapshot_rollback`. No pipe ⇒ no MSYS text translation ⇒ byte-faithful round-trip. `cp -a`/`cp -Rp` kept as fallbacks; `tar -xpf` preserves symlinks/perms. (2) Add a 3-point sha256 diagnostic in `rollback_path()` (env-gated `CONJURE_ADOPT_ROLLBACK_DIAG=1`, stderr-only; the P22 rollback test sets it) so if the mismatch persists the windows-test log pins create-vs-restore-vs-elsewhere. (3, secondary root fix) **scripts/init-project.sh** emits a `CONJURE_CREATED_MANIFEST` (each file/dir it actually creates, inside its existence guard); **scripts/adopt.sh** consumes it as the authoritative created[] source (separator/locale-independent), expanding directory entries to files (mutate_rm is per-file). The lossy find/comm diff remains only as a fallback; the per-file `rm -f` orphan band-aid is removed (COMPOUND-CANDIDATES.md is now in created[]).
+- **verification:** (1) macOS full suite `bash tests/run.sh` → **PASS 439 / FAIL 0** (all P22/P24 rollback + SAFE-04 .mutated[0].before assertions green). (2) `shellcheck -S error -e SC2164,SC2044,SC2034,SC2155` CLEAN on adopt.sh, init-project.sh, snapshot.sh. (3) Local adopt+rollback on a git fixture: created[]=47 files incl. COMPOUND-CANDIDATES.md + code-explorer.md + skill-dir files (directory expansion confirmed); rollback rc=0; 3-point diag printed all three shas EQUAL on macOS (corruption is Windows-only); post-rollback tree == pre-adopt tree (zero leftover). (4) PENDING: one `windows-test` CI cycle (~21 min) to confirm green — orchestrator owns the hook-gated `git push`.
+- **files_changed:** `lib/snapshot.sh` (tar pipe → temp file ×2), `scripts/adopt.sh` (3-point diag + manifest-driven created[] with dir expansion; orphan band-aid removed), `scripts/init-project.sh` (emit CONJURE_CREATED_MANIFEST).
 
 ## Resolution status
 
-Fix committed; awaiting the single windows-test CI confirmation cycle. Cannot reproduce Windows locally — reasoned from code, kept macOS suite green, shellcheck clean.
+Fix #2 applied (tar temp-file + manifest-driven created[] + 3-point diag); committed; awaiting the single windows-test CI confirmation cycle. Cannot reproduce Windows locally — reasoned from code + binary-pipe pathology, kept macOS suite green (439/0), shellcheck clean, local adopt/rollback verified. If the diag shows the mismatch persists, the (a)/(b)/(c) shas pinpoint create-vs-restore for the next cycle.
