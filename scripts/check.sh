@@ -39,8 +39,12 @@ for hook in "$CONJURE_HOME"/templates/hooks-nodejs/*.mjs; do
   printf '%s\n' ".claude/hooks/$(basename "$hook")" >> "$MANIFEST"
 done
 
-# Skills (19 — one SKILL.md per skill directory)
+# Skills (one SKILL.md per skill directory). Only count a directory as a skill
+# if it actually contains a SKILL.md — a partial skill dir (e.g. helper scripts
+# staged before the SKILL.md ships) is not yet an installable skill and must not
+# register as drift.
 for skill_dir in "$CONJURE_HOME"/templates/skills/*/; do
+  [ -f "$skill_dir/SKILL.md" ] || continue
   printf '%s\n' ".claude/skills/$(basename "$skill_dir")/SKILL.md" >> "$MANIFEST"
 done
 
