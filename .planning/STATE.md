@@ -2,8 +2,8 @@
 gsd_state_version: 1.0
 milestone: v0.6.0
 milestone_name: Safe Brownfield Adoption
-status: verifying
-last_updated: "2026-05-29T02:21:04.422Z"
+status: ready_to_plan
+last_updated: 2026-05-29T02:51:10.441Z
 last_activity: 2026-05-29
 progress:
   total_phases: 4
@@ -11,6 +11,7 @@ progress:
   total_plans: 10
   completed_plans: 10
   percent: 75
+stopped_at: Phase 23 complete (3/3) — ready to discuss Phase 24
 ---
 
 # Project State
@@ -20,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-28)
 
 **Core value:** A developer can turn any repo into a production-grade, eval-backed Claude Code harness with one trustworthy command — and keep it healthy over time.
-**Current focus:** Phase 23 — restructure-skill-safety-gates
+**Current focus:** Phase 24 — integration tests + argus fixture
 
 ## Current Position
 
-Phase: 23 (restructure-skill-safety-gates) — EXECUTING
-Plan: 3 of 3
-Status: Phase complete — ready for verification
+Phase: 24
+Plan: Not started
+Status: Ready to plan
 Last activity: 2026-05-29
 
 Progress: [██████████] 100%
@@ -35,7 +36,7 @@ Progress: [██████████] 100%
 
 **Velocity:**
 
-- Total plans completed: 62 (v0.3.0: 22, v0.4.0: 23, v0.5.0: 10)
+- Total plans completed: 65 (v0.3.0: 22, v0.4.0: 23, v0.5.0: 10)
 - Average duration: — min
 - Total execution time: —
 
@@ -48,6 +49,7 @@ Progress: [██████████] 100%
 | v0.5.0 phases 16–20 | 10 | - | - |
 | 21 | 4 | - | - |
 | 22 | 3 | - | - |
+| 23 | 3 | - | - |
 
 **Recent Trend:**
 
